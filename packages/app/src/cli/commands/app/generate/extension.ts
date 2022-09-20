@@ -5,6 +5,7 @@ import {
   getExtensionOutputConfig,
   limitedExtensions,
   isUiExtensionType,
+  isThemeExtensionType,
   isFunctionExtensionType,
   functionExtensionTemplates,
   ExternalExtensionTypes,
@@ -66,7 +67,7 @@ export default class AppScaffoldExtension extends Command {
   static args = [{name: 'file'}]
 
   public static analyticsNameOverride(): string | undefined {
-    return 'scaffold'
+    return 'app scaffold extension'
   }
 
   public async run(): Promise<void> {
@@ -204,7 +205,7 @@ export default class AppScaffoldExtension extends Command {
       )}`.value,
     )
 
-    if (isUiExtensionType(extensionType)) {
+    if (isUiExtensionType(extensionType) || isThemeExtensionType(extensionType)) {
       outputTokens.push(
         output.content`  To preview your project, run ${output.token.packagejsonScript(depndencyManager, 'dev')}`.value,
       )

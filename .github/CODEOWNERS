@@ -6,3 +6,6 @@ packages/create-hydrogen/ @shopify/hydrogen
 packages/theme/ @shopify/theme-developer-tools
 
 packages/ui-extensions-* @shopify/ui-extensions-cli
+
+# Checkout UI extensions template
+packages/app/templates/ui-extensions/projects/checkout_ui/ @Shopify/checkout-ui-extensions-api-stewardship

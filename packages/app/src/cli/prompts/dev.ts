@@ -19,6 +19,7 @@ export async function selectOrganizationPrompt(organizations: Organization[]): P
 }
 
 export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, token: string): Promise<OrganizationApp> {
+  const appsByApiKey: {[apiKey: string]: OrganizationApp} = Object.fromEntries(apps.map((app) => [app.apiKey, app]))
   const toAnswer = (app: OrganizationApp) => ({name: app.title, value: app.apiKey})
   const appList = apps.map(toAnswer)
   const allInputs = ['']
@@ -28,6 +29,7 @@ export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, to
     const input = allInputs.pop()
     if (!input) return
     const result = await fetchOrgAndApps(orgId, token, input)
+    result.apps.forEach((app) => appsByApiKey[app.apiKey] = app)
     cachedResults[input] = result.apps
   }, 1000)
   const choice = await ui.prompt([
@@ -51,7 +53,7 @@ export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, to
     },
   ])
   clearInterval(fetchInterval)
-  return apps.find((app) => app.apiKey === choice.apiKey)!
+  return appsByApiKey[choice.apiKey]!
 }
 
 export async function selectStorePrompt(stores: OrganizationStore[]): Promise<OrganizationStore | undefined> {

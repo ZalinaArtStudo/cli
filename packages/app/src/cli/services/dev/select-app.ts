@@ -32,7 +32,7 @@ export async function selectOrCreateApp(
     output.info(`\nBefore you preview your work, it needs to be associated with an app.\n`)
     createNewApp = await createAsNewAppPrompt()
   }
-  const app = createNewApp ? await createApp(org, localApp, token) : await selectAppPrompt(apps)
+  const app = createNewApp ? await createApp(org, localApp, token) : await selectAppPrompt(apps, org.id, token)
   return app
 }
 

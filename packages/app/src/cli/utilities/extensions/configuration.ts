@@ -1,30 +1,25 @@
-import {UIExtensionTypes} from '../../constants.js'
-
 interface GetUIExensionResourceURLOptions {
   checkoutCartUrl?: string
   subscriptionProductUrl?: string
 }
 
 export function getUIExtensionResourceURL(
-  uiExtensionType: UIExtensionTypes,
+  uiExtensionType: string,
   options: GetUIExensionResourceURLOptions,
 ): {url: string | undefined} {
   switch (uiExtensionType) {
     case 'checkout_ui_extension':
       return {url: options.checkoutCartUrl}
-    case 'checkout_post_purchase':
-    case 'pos_ui_extension':
-    case 'web_pixel_extension':
-    case 'customer_accounts_ui_extension':
-      return {url: ''}
     case 'product_subscription':
       return {url: options.subscriptionProductUrl ?? ''}
+    default:
+      return {url: ''}
   }
 }
 
 export type UIExtensionSurface = ReturnType<typeof getUIExtensionSurface>
 
-export function getUIExtensionSurface(uiExtensionType: UIExtensionTypes) {
+export function getUIExtensionSurface(uiExtensionType: string) {
   switch (uiExtensionType) {
     case 'checkout_ui_extension':
       return 'checkout'
@@ -36,8 +31,7 @@ export function getUIExtensionSurface(uiExtensionType: UIExtensionTypes) {
       return 'pos'
     case 'product_subscription':
       return 'admin'
-    case 'web_pixel_extension':
-      // This value is mandatory but is not yet defined for web_pixel
+    default:
       return 'unknown'
   }
 }

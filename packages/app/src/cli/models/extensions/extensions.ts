@@ -1,5 +1,6 @@
 import {BaseExtensionSchema, TypeSchema, ExtensionPointSchema} from './schemas.js'
 import {ExtensionPointSpec} from './extension-points.js'
+import {allExtensionSpecifications} from './specifications.js'
 import {AppInterface} from '../app/app.js'
 import {bundleExtension} from '../../services/extensions/bundle.js'
 import {ThemeExtension, UIExtension} from '../app/extensions.js'
@@ -125,7 +126,7 @@ export class ExtensionInstance<TConfiguration extends BaseConfigContents = BaseC
     stdout.write(`${this.localIdentifier} successfully built`)
   }
 
-  deployConfig() {
+  async deployConfig(): Promise<{[key: string]: unknown}> {
     return this.specification.deployConfig?.(this.configuration, this.directory) ?? {}
   }
 
@@ -136,17 +137,14 @@ export class ExtensionInstance<TConfiguration extends BaseConfigContents = BaseC
 
   resourceUrl() {
     if (this.extensionPointSpecs) {
-      return this.extensionPointSpecs.map((point) => {
-        const conf = this.configuration.extension_points?.find((spec) => spec.type === point.type)
-        if (!conf) return {type: point.type, url: undefined}
-        return {type: point.type, url: this.extensionPointURL(point, conf)}
-      })
+      // PENDING: Add support for externsion pints
+      return ''
     } else {
       return this.specification.resourceUrl?.(this.configuration) ?? ''
     }
   }
 
-  async publishURL(options: {orgId: string; appId: string; extensionId: string}) {
+  async publishURL(options: {orgId: string; appId: string; extensionId?: string}) {
     const partnersFqdn = await environment.fqdn.partners()
     const parnersPath = this.specification.partnersWebId
     return `https://${partnersFqdn}/${options.orgId}/apps/${options.appId}/extensions/${parnersPath}/${options.extensionId}`
@@ -170,8 +168,9 @@ export class ExtensionInstance<TConfiguration extends BaseConfigContents = BaseC
 /**
  * Find the registered spececification for a given extension type
  */
-function specForType(type: string): ExtensionSpec | undefined {
-  return AllLocalSpecs.find((spec) => spec.identifier === type)
+async function specForType(type: string): Promise<ExtensionSpec | undefined> {
+  const allSpecs = await allExtensionSpecifications()
+  return allSpecs.find((spec) => spec.identifier === type)
 }
 
 // PENDING: Fetch remote specs
@@ -200,8 +199,10 @@ export async function loadExtension(configPath: string): Promise<Result<Extensio
   const {type} = TypeSchema.parse(obj)
 
   // Find spec for this type
-  const localSpec = specForType(type)
+  const localSpec = await specForType(type)
   const remoteSpec = remoteSpecForType(type)
+
+  console.log(type, configPath)
   if (!localSpec) return err('invalid_extension_type')
 
   // Parse config for this extension type schema
@@ -210,6 +211,7 @@ export async function loadExtension(configPath: string): Promise<Result<Extensio
     config = localSpec.schema.parse(obj)
     // eslint-disable-next-line no-catch-all/no-catch-all
   } catch {
+    console.log(type)
     return err('invalid_config')
   }
 

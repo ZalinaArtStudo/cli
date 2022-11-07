@@ -1,8 +1,8 @@
 import {BaseFunctionConfigurationSchema, BaseFunctionMetadataSchema, TypeSchema} from './schemas.js'
+import {allFunctionSpecifications} from './specifications.js'
 import {FunctionExtension} from '../app/extensions.js'
-import {toml, schema, file, path, error, system, abort, string} from '@shopify/cli-kit'
+import {toml, schema, file, path, error, system, abort, string, environment} from '@shopify/cli-kit'
 import {err, ok, Result} from '@shopify/cli-kit/common/result'
-import {fqdn} from '@shopify/cli-kit/src/environment.js'
 import {Writable} from 'stream'
 
 // Base config types that all config schemas must extend
@@ -122,7 +122,7 @@ export class FunctionInstance<
   }
 
   async publishURL(options: {orgId: string; appId: string}) {
-    const partnersFqdn = await fqdn.partners()
+    const partnersFqdn = await environment.fqdn.partners()
     return `https://${partnersFqdn}/${options.orgId}/apps/${options.appId}/extensions`
   }
 }
@@ -130,8 +130,8 @@ export class FunctionInstance<
 /**
  * Find the registered spec for a given function type
  */
-function specForType(type: string): FunctionSpec | undefined {
-  return AllSpecs.find((spec) => spec.identifier === type)
+async function specForType(type: string): Promise<FunctionSpec | undefined> {
+  return (await allFunctionSpecifications()).find((spec) => spec.identifier === type)
 }
 
 /**
@@ -149,7 +149,8 @@ export async function loadFunction(configPath: string): Promise<Result<FunctionI
 
   // Find spec for the current function type
   const {type} = TypeSchema.parse(obj)
-  const spec = specForType(type)
+  const spec = await specForType(type)
+
   if (!spec) return err('invalid_function_type')
 
   // Parse Config file

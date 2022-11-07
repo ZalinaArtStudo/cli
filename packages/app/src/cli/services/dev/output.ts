@@ -1,7 +1,7 @@
 import {PartnersURLs} from './urls.js'
 import {AppInterface} from '../../models/app/app.js'
 import {FunctionExtension, ThemeExtension, UIExtension} from '../../models/app/extensions.js'
-import {ExtensionTypes, getExtensionOutputConfig, UIExtensionTypes} from '../../constants.js'
+import {getExtensionOutputConfig, UIExtensionTypes} from '../../constants.js'
 import {OrganizationApp} from '../../models/organization.js'
 import {output, string, environment} from '@shopify/cli-kit'
 
@@ -147,7 +147,7 @@ function productSubscriptionMessage(url: string, extension: UIExtension) {
   return output.content`Preview link: ${publicURL}`
 }
 
-function getHumanKey(type: ExtensionTypes) {
+function getHumanKey(type: string) {
   return string.capitalize(getExtensionOutputConfig(type).humanKey)
 }
 

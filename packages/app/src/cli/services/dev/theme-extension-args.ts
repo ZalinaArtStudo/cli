@@ -11,7 +11,7 @@ export async function themeExtensionArgs(
   const extensionId = extensionRegistration.id
   const directory = extension.directory
   const extensionTitle = extension.localIdentifier
-  const extensionType = extension.graphQLType
+  const extensionType = extension.identifier
 
   const args: string[] = [
     directory,

@@ -1,6 +1,6 @@
 import {FunctionExtension, ThemeExtension, UIExtension} from './extensions.js'
 import {AppErrors} from './loader.js'
-import {getUIExtensionRendererDependency, UIExtensionTypes} from '../../constants.js'
+import {getUIExtensionRendererDependency} from '../../constants.js'
 import {path, schema, file} from '@shopify/cli-kit'
 import {DotEnvFile} from '@shopify/cli-kit/node/dot-env'
 import {getDependencies, PackageManager, readAndParsePackageJson} from '@shopify/cli-kit/node/node-package-manager'
@@ -137,7 +137,7 @@ type RendererVersionResult = {name: string; version: string} | undefined | 'not_
  * @returns The version if the dependency exists.
  */
 export async function getUIExtensionRendererVersion(
-  uiExtensionType: UIExtensionTypes,
+  uiExtensionType: string,
   app: AppInterface,
 ): Promise<RendererVersionResult> {
   // Look for the vanilla JS version of the dependency (the react one depends on it, will always be present)

@@ -45,9 +45,9 @@ export const blocks = {
  * List of extensions for each category that are limited by quantity, only 1 of each is allowed per app
  */
 export const limitedExtensions: {
-  ui: UIExtensionTypes[]
-  theme: ThemeExtensionTypes[]
-  function: FunctionExtensionTypes[]
+  ui: string[]
+  theme: string[]
+  function: string[]
 } = {
   ui: ['product_subscription', 'checkout_post_purchase', 'web_pixel_extension'],
   theme: ['theme'],
@@ -140,7 +140,7 @@ export function extensionTypeIsGated(extensionType: ExtensionTypes): extensionTy
  * @param extensionType - Extension type.
  * @returns The renderer dependency that should be present in the app's package.json
  */
-export function getUIExtensionRendererDependency(extensionType: UIExtensionTypes): DependencyVersion | undefined {
+export function getUIExtensionRendererDependency(extensionType: string): DependencyVersion | undefined {
   switch (extensionType) {
     case 'product_subscription':
       return {name: '@shopify/admin-ui-extensions-react', version: '^1.0.1'}
@@ -154,6 +154,8 @@ export function getUIExtensionRendererDependency(extensionType: UIExtensionTypes
       return {name: '@shopify/customer-account-ui-extensions-react', version: '^0.0.5'}
     case 'web_pixel_extension':
       return {name: '@shopify/web-pixels-extension', version: '^0.1.1'}
+    default:
+      return {name: 'unknown', version: 'unknown'}
   }
 }
 
@@ -234,6 +236,7 @@ export const externalExtensionTypeNames = {
     'Payment customization',
     'Delivery option presenter',
     'Delivery customization',
+    'Other',
   ],
 } as const
 
@@ -244,7 +247,7 @@ export interface ExtensionOutputConfig {
   additionalHelp?: string
 }
 
-export function getExtensionOutputConfig(extensionType: ExtensionTypes): ExtensionOutputConfig {
+export function getExtensionOutputConfig(extensionType: string): ExtensionOutputConfig {
   switch (extensionType) {
     case 'web_pixel_extension':
       return buildExtensionOutputConfig('Web pixel')
@@ -278,6 +281,8 @@ export function getExtensionOutputConfig(extensionType: ExtensionTypes): Extensi
       return buildExtensionOutputConfig('Delivery option presenter')
     case 'delivery_customization':
       return buildExtensionOutputConfig('Delivery customization')
+    default:
+      return buildExtensionOutputConfig('Other')
   }
 }
 
@@ -287,7 +292,7 @@ export function getExtensionOutputConfig(extensionType: ExtensionTypes): Extensi
  * @param type - The extension type
  * @returns The extension GraphQL ID
  */
-export const extensionGraphqlId = (type: ExtensionTypes) => {
+export const extensionGraphqlId = (type: string) => {
   switch (type) {
     case 'product_subscription':
       return 'SUBSCRIPTION_MANAGEMENT'
@@ -309,6 +314,7 @@ export const extensionGraphqlId = (type: ExtensionTypes) => {
     case 'payment_customization':
     case 'delivery_customization':
     case 'shipping_rate_presenter':
+    default:
       // As we add new extensions, this bug will force us to add a new case here.
       return type.toUpperCase()
   }

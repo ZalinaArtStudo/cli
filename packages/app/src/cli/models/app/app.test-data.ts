@@ -31,6 +31,8 @@ export function testUIExtension(uiExtension: Partial<UIExtension> = {}): UIExten
   const directory = uiExtension?.directory ?? '/tmp/project/extensions/test-ui-extension'
 
   return {
+    identifier: uiExtension?.configuration?.type ?? 'product_subscription',
+    name: uiExtension?.configuration?.name ?? 'test-ui-extension',
     localIdentifier: uiExtension?.localIdentifier ?? 'test-ui-extension',
     outputBundlePath: uiExtension?.outputBundlePath ?? `${directory}/dist/main.js`,
     configuration: uiExtension?.configuration ?? {
@@ -43,17 +45,24 @@ export function testUIExtension(uiExtension: Partial<UIExtension> = {}): UIExten
       },
     },
     type: 'checkout_post_purchase',
-    graphQLType: 'CHECKOUT_POST_PURCHASE',
     configurationPath: uiExtension?.configurationPath ?? `${directory}/shopify.ui.extension.toml`,
     directory,
     entrySourceFilePath: uiExtension?.entrySourceFilePath ?? `${directory}/src/index.js`,
     idEnvironmentVariableName: uiExtension?.idEnvironmentVariableName ?? 'SHOPIFY_TET_UI_EXTENSION_ID',
     devUUID: 'devUUID',
+    publishURL: () => {
+      return new Promise((resolve, reject) => resolve("app's publish url"))
+    },
+    deployConfig() {
+      return new Promise((resolve, reject) => resolve({}))
+    },
   }
 }
 
 export function testThemeExtensions(): ThemeExtension {
   return {
+    identifier: 'theme_app_extension',
+    name: 'theme extension name',
     configuration: {
       name: 'theme extension name',
       type: 'theme',
@@ -63,12 +72,16 @@ export function testThemeExtensions(): ThemeExtension {
     configurationPath: '',
     directory: './my-extension',
     type: 'theme',
-    graphQLType: 'THEME_APP_EXTENSION',
+    publishURL: () => {
+      return new Promise((resolve, reject) => resolve("app's publish url"))
+    },
   }
 }
 
 export function testFunctionExtension(): FunctionExtension {
   return {
+    name: 'test function extension',
+    identifier: 'product_discounts',
     configuration: {
       name: 'test function extension',
       description: 'description',
@@ -89,6 +102,8 @@ export function testFunctionExtension(): FunctionExtension {
     configurationPath: '',
     directory: './my-extension',
     type: 'product_discounts',
-    graphQLType: 'PRODUCT_DISCOUNTS',
+    publishURL: () => {
+      return new Promise((resolve, reject) => resolve("app's publish url"))
+    },
   }
 }

@@ -24,13 +24,14 @@ export const ExtensionPointSchema = schema.define.object({
 export const BaseExtensionSchema = schema.define.object({
   name: schema.define.string(),
   type: schema.define.string(),
-  extension_points: schema.define.array(ExtensionPointSchema).optional(),
+  extensionPoints: schema.define.array(schema.define.string()).optional(),
   capabilities: schema.define
     .object({
       block_progress: schema.define.boolean().optional(),
       network_access: schema.define.boolean().optional(),
     })
     .optional(),
+  categories: schema.define.array(schema.define.string()).optional(),
   metafields: schema.define.array(MetafieldSchema).optional(),
 })
 

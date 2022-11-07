@@ -10,6 +10,8 @@ export interface Extension {
   directory: string
   identifier: string
   type: string
+  name: string
+  publishURL: (options: {orgId: string; appId: string; extensionId?: string}) => Promise<string>
 }
 
 export const UIExtensionConfigurationSchema = schema.define.object({
@@ -103,6 +105,7 @@ export type UIExtension<TConfiguration extends BaseConfigContents = BaseConfigCo
   entrySourceFilePath: string
   outputBundlePath: string
   devUUID: string
+  deployConfig: () => Promise<unknown>
 }
 
 type UIExtensionConfiguration = schema.define.infer<typeof UIExtensionConfigurationSchema>

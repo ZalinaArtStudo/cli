@@ -1,10 +1,10 @@
-import type {ExtensionTypes, ExternalExtensionTypes, UIExtensionTypes, UIExternalExtensionTypes} from '../../constants'
+import type {ExtensionTypes, ExternalExtensionTypes} from '../../constants'
 
-export function mapExtensionTypesToExternalExtensionTypes(extensionTypes: ExtensionTypes[]): ExternalExtensionTypes[] {
+export function mapExtensionTypesToExternalExtensionTypes(extensionTypes: string[]): string[] {
   return extensionTypes.map(mapExtensionTypeToExternalExtensionType)
 }
 
-export function mapExtensionTypeToExternalExtensionType(extensionType: ExtensionTypes): ExternalExtensionTypes {
+export function mapExtensionTypeToExternalExtensionType(extensionType: string): string {
   switch (extensionType) {
     case 'checkout_post_purchase':
       return 'post_purchase_ui'
@@ -33,9 +33,7 @@ export function mapExtensionTypeToExternalExtensionType(extensionType: Extension
   }
 }
 
-export function mapUIExternalExtensionTypeToUIExtensionType(
-  externalExtensionType: UIExtensionTypes | UIExternalExtensionTypes,
-): UIExtensionTypes {
+export function mapUIExternalExtensionTypeToUIExtensionType(externalExtensionType: string): string {
   switch (externalExtensionType) {
     case 'post_purchase_ui':
       return 'checkout_post_purchase'

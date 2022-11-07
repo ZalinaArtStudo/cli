@@ -14,15 +14,8 @@ import {Identifiers, updateAppIdentifiers} from '../models/app/identifiers.js'
 import {Extension} from '../models/app/extensions.js'
 import {validateExtensions} from '../validators/extensions.js'
 import {OrganizationApp} from '../models/organization.js'
-import {path, output, file, error} from '@shopify/cli-kit'
+import {path, output, file} from '@shopify/cli-kit'
 import {AllAppExtensionRegistrationsQuerySchema} from '@shopify/cli-kit/src/api/graphql'
-
-const RendererNotFoundBug = (extension: string) => {
-  return new error.Bug(
-    `Couldn't find renderer version for extension ${extension}`,
-    'Make sure you have all your dependencies up to date',
-  )
-}
 
 interface DeployOptions {
   /** The app to be built and uploaded */

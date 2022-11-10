@@ -9,3 +9,7 @@ packages/ui-extensions-* @shopify/ui-extensions-cli
 
 # Checkout UI extensions generate template
 packages/app/templates/ui-extensions/projects/checkout_ui/ @Shopify/checkout-ui-extensions-api-stewardship
+
+packages/app/src/cli/services/dev/extension/ @shopify/ui-extensions-cli
+packages/app/src/cli/services/dev/extension.ts @shopify/ui-extensions-cli
+

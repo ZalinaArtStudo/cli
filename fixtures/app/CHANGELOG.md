@@ -1,5 +1,79 @@
 # app
 
+## 3.22.1
+
+### Patch Changes
+
+- Updated dependencies [b9275c2b]
+  - @shopify/app@3.22.1
+  - @shopify/cli@3.22.1
+
+## 3.22.0
+
+### Patch Changes
+
+- Updated dependencies [6c0cd13d]
+  - @shopify/cli@3.22.0
+  - @shopify/app@3.22.0
+
+## 3.21.0
+
+### Patch Changes
+
+- Updated dependencies [e4352f2e]
+- Updated dependencies [ad31c0bd]
+- Updated dependencies [5cda6300]
+  - @shopify/app@3.21.0
+  - @shopify/cli@3.21.0
+
+## 3.20.1
+
+### Patch Changes
+
+- Updated dependencies [3f285ff9]
+  - @shopify/cli@3.20.1
+  - @shopify/app@3.20.1
+
+## 3.20.0
+
+### Patch Changes
+
+- Updated dependencies [96d5b175]
+- Updated dependencies [48dfd98e]
+- Updated dependencies [1e157c5b]
+- Updated dependencies [4bd05555]
+  - @shopify/app@3.20.0
+  - @shopify/cli@3.20.0
+
+## 3.19.0
+
+### Patch Changes
+
+- @shopify/app@3.19.0
+- @shopify/cli@3.19.0
+
+## 3.18.0
+
+### Patch Changes
+
+- Updated dependencies [ef42fda6]
+- Updated dependencies [1455ee44]
+- Updated dependencies [b4dafa4f]
+- Updated dependencies [65625f47]
+- Updated dependencies [5a73a0e2]
+- Updated dependencies [0d674d64]
+  - @shopify/cli@3.18.0
+  - @shopify/app@3.18.0
+
+## 3.17.0
+
+### Patch Changes
+
+- Updated dependencies [7576f700]
+- Updated dependencies [dac186b2]
+  - @shopify/app@3.17.0
+  - @shopify/cli@3.17.0
+
 ## 3.16.3
 
 ### Patch Changes

@@ -46,7 +46,8 @@ program
       const octokit = new OctokitWithPlugin({
         auth: process.env.GITHUB_TOKEN,
       });
-      const content = (await readFile(path.join(outputDirectory, `shopify-cli@3.rb`))).toString()
+      const content = (await readFile(path.join(outputDirectory, `shopify-cli.rb`))).toString()
+      const content3 = (await readFile(path.join(outputDirectory, `shopify-cli@3.rb`))).toString()
 
       const response = await octokit
         .createPullRequest({
@@ -61,7 +62,8 @@ program
           changes: [
             {
               files: {
-                "shopify-cli@3.rb": content,
+                "shopify-cli.rb": content,
+                "shopify-cli@3.rb": content3,
               },
               commit: `Update Shopify CLI 3 formula to install the version ${version}`,
             },
@@ -118,7 +120,7 @@ async function getSha256ForTarball(url) {
 async function recursiveDirectoryCopy(from, to, data) {
   console.log(`Generating the formula into ${to}`)
 
-  const engine = new Liquid()
+  const engine = new Liquid({root: from})
   const templateFiles = await glob(path.join(from, '**/*'), {dot: true})
 
   if (await pathExists(to)) {

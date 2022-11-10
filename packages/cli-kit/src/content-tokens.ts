@@ -1,5 +1,5 @@
 import {relativize as relativizePath} from './path.js'
-import {colors} from './node/colors.js'
+import colors from './public/node/colors.js'
 import {Message, stringifyMessage} from './output.js'
 import terminalLink from 'terminal-link'
 import cjs from 'color-json'
@@ -61,14 +61,14 @@ export class LinesDiffContentToken extends ContentToken<Change[]> {
             .split(/\n/)
             .filter((line) => line !== '')
             .map((line) => {
-              return colors.green(`+ ${line}\n`) as string
+              return colors.green(`+ ${line}\n`)
             })
         } else if (part.removed) {
           return part.value
             .split(/\n/)
             .filter((line) => line !== '')
             .map((line) => {
-              return colors.magenta(`- ${line}\n`) as string
+              return colors.magenta(`- ${line}\n`)
             })
         } else {
           return part.value

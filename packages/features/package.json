@@ -23,14 +23,15 @@
     "rimraf": "^3.0.2"
   },
   "engines": {
-    "node": ">=14.13.1"
+    "node": ">=14.17.0"
   },
   "eslintConfig": {
     "extends": [
       "../../.eslintrc.cjs"
     ],
     "rules": {
-      "no-console": "off"
+      "no-console": "off",
+      "import/extensions": ["error", "never", {"ignorePackages": true}]
     }
   }
 }

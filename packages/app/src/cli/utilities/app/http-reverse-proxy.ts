@@ -1,5 +1,8 @@
-import {port, output, abort} from '@shopify/cli-kit'
+import {output, abort} from '@shopify/cli-kit'
 import httpProxy from 'http-proxy'
+import {renderConcurrent} from '@shopify/cli-kit/node/ui'
+import {AbortController} from 'abort-controller'
+import {getAvailableTCPPort} from '@shopify/cli-kit/node/tcp'
 import {Writable} from 'stream'
 import * as http from 'http'
 
@@ -40,7 +43,7 @@ export async function runConcurrentHTTPProcessesAndPathForwardTraffic(
 
   const processes = await Promise.all(
     proxyTargets.map(async (target): Promise<output.OutputProcess> => {
-      const targetPort = await port.getRandomPort()
+      const targetPort = await getAvailableTCPPort()
       rules[target.pathPrefix ?? '/'] = `http://localhost:${targetPort}`
       return {
         prefix: target.logPrefix,
@@ -51,7 +54,7 @@ export async function runConcurrentHTTPProcessesAndPathForwardTraffic(
     }),
   )
 
-  const availablePort = portNumber ?? (await port.getRandomPort())
+  const availablePort = portNumber ?? (await getAvailableTCPPort())
 
   output.debug(output.content`
 Starting reverse HTTP proxy on port ${output.token.raw(availablePort.toString())}
@@ -81,11 +84,14 @@ ${output.token.json(JSON.stringify(rules))}
     socket.destroy()
   })
 
+  const abortController = new AbortController()
+  abortController.signal.addEventListener('abort', () => {
+    server.close()
+  })
   await Promise.all([
-    output.concurrent([...processes, ...additionalProcesses], (abortSignal) => {
-      abortSignal.addEventListener('abort', () => {
-        server.close()
-      })
+    renderConcurrent({
+      processes: [...processes, ...additionalProcesses],
+      abortController,
     }),
     server.listen(availablePort),
   ])

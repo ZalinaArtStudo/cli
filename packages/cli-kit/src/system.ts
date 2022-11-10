@@ -1,6 +1,7 @@
-import {concurrent as concurrentOutput, shouldDisplayColors, debug} from './output.js'
+import {shouldDisplayColors, debug} from './output.js'
 import {platformAndArch} from './os.js'
-import {Abort} from './error.js'
+import {ExternalError} from './error.js'
+import {renderConcurrent} from './public/node/ui.js'
 import {execa, ExecaChildProcess} from 'execa'
 import {AbortSignal} from 'abort-controller'
 import type {Writable, Readable} from 'node:stream'
@@ -48,7 +49,7 @@ export const exec = async (command: string, args: string[], options?: ExecOption
     await commandProcess
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (processError: any) {
-    const abortError = new Abort(processError.message)
+    const abortError = new ExternalError(processError.message, command, args)
     abortError.stack = processError.stack
     throw abortError
   }
@@ -85,18 +86,15 @@ interface ConcurrentExecCommand {
 
 /**
  * Runs commands concurrently and combines the standard output and error data
- * into a single stream that differenciates the sources using a colored prefix:
- *
- * Example:
- *   [my-extension] Log coming from my-extension
- *   [my-script] Log coming from my script
+ * into a single stream. See {@link renderConcurrent} for more information about
+ * the output format.
  *
  * If one of the processes fails, it aborts the running ones and exits with that error.
  * @param commands - Commands to execute.
  */
 export const concurrentExec = async (commands: ConcurrentExecCommand[]): Promise<void> => {
-  await concurrentOutput(
-    commands.map((command) => {
+  await renderConcurrent({
+    processes: commands.map((command) => {
       return {
         prefix: command.prefix,
         action: async (stdout, stderr, signal) => {
@@ -109,7 +107,7 @@ export const concurrentExec = async (commands: ConcurrentExecCommand[]): Promise
         },
       }
     }),
-  )
+  })
 }
 
 /**

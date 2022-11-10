@@ -12,19 +12,12 @@ import {fetchAppExtensionRegistrations} from './dev/fetch.js'
 import {AppInterface, getUIExtensionRendererVersion} from '../models/app/app.js'
 import {Identifiers, updateAppIdentifiers} from '../models/app/identifiers.js'
 import {Extension, UIExtension} from '../models/app/extensions.js'
-import {isFunctionExtensionType, isThemeExtensionType, isUiExtensionType, UIExtensionTypes} from '../constants.js'
+import {isFunctionExtensionType, isThemeExtensionType, isUiExtensionType} from '../constants.js'
 import {loadLocalesConfig} from '../utilities/extensions/locales-configuration.js'
 import {validateExtensions} from '../validators/extensions.js'
 import {OrganizationApp} from '../models/organization.js'
 import {path, output, file, error, environment} from '@shopify/cli-kit'
 import {AllAppExtensionRegistrationsQuerySchema} from '@shopify/cli-kit/src/api/graphql'
-
-const RendererNotFoundBug = (extension: string) => {
-  return new error.Bug(
-    `Couldn't find renderer version for extension ${extension}`,
-    'Make sure you have all your dependencies up to date',
-  )
-}
 
 interface DeployOptions {
   /** The app to be built and uploaded */
@@ -177,14 +170,19 @@ async function outputCompletionMessage({
 }
 
 async function configFor(extension: UIExtension, app: AppInterface) {
-  const type = extension.type as UIExtensionTypes
-  switch (extension.type as UIExtensionTypes) {
+  const type = extension.type
+  switch (extension.type) {
     case 'checkout_post_purchase':
       return {metafields: extension.configuration.metafields}
     case 'pos_ui_extension':
     case 'product_subscription': {
       const result = await getUIExtensionRendererVersion(type, app)
-      if (result === 'not_found') throw RendererNotFoundBug(type)
+      if (result === 'not_found') {
+        throw new error.Bug(
+          `Couldn't find renderer version for extension ${type}`,
+          'Make sure you have all your dependencies up to date',
+        )
+      }
       return {renderer_version: result?.version}
     }
     case 'checkout_ui_extension': {
@@ -202,7 +200,6 @@ async function configFor(extension: UIExtension, app: AppInterface) {
         extension_points: extension.configuration.extensionPoints,
         name: extension.configuration.name,
         categories: extension.configuration.categories,
-        localization: await loadLocalesConfig(extension.directory),
       }
     }
     case 'web_pixel_extension': {
@@ -234,19 +231,15 @@ async function getExtensionPublishURL({
      * https://github.com/Shopify/partners/tree/master/app/assets/javascripts/sections/apps/app-extensions/extensions
      */
     let pathComponent: string
-    switch (extension.type as UIExtensionTypes) {
-      case 'checkout_ui_extension':
-      case 'pos_ui_extension':
-      case 'product_subscription':
-      case 'customer_accounts_ui_extension':
-        pathComponent = extension.type
-        break
+    switch (extension.type) {
       case 'checkout_post_purchase':
         pathComponent = 'post_purchase'
         break
       case 'web_pixel_extension':
         pathComponent = 'web_pixel'
         break
+      default:
+        pathComponent = extension.type
     }
     return `https://${partnersFqdn}/${partnersOrganizationId}/apps/${partnersApp.id}/extensions/${pathComponent}/${extensionId}`
   } else if (isFunctionExtensionType(extension.type)) {

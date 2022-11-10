@@ -123,9 +123,8 @@ async function uiExtensionInit({
             throw new error.Bug(`Couldn't find the template for ${extensionType}`)
           }
 
-          const flavor = extensionFlavor?.includes('react') ? 'react' : ''
           await template.recursiveDirectoryCopy(templateDirectory, extensionDirectory, {
-            flavor,
+            flavor: extensionFlavor ?? '',
             type: extensionType,
             name,
           })
@@ -148,24 +147,15 @@ export function getRuntimeDependencies({
   extensionType,
   extensionFlavor,
 }: Pick<UIExtensionInitOptions, 'extensionType' | 'extensionFlavor'>): DependencyVersion[] {
-  switch (extensionType) {
-    case 'product_subscription':
-    case 'checkout_ui_extension':
-    case 'pos_ui_extension':
-    case 'web_pixel_extension':
-    case 'customer_accounts_ui_extension':
-    case 'checkout_post_purchase': {
-      const dependencies: DependencyVersion[] = []
-      if (extensionFlavor?.includes('react')) {
-        dependencies.push({name: 'react', version: versions.react})
-      }
-      const rendererDependency = getUIExtensionRendererDependency(extensionType)
-      if (rendererDependency) {
-        dependencies.push(rendererDependency)
-      }
-      return dependencies
-    }
+  const dependencies: DependencyVersion[] = []
+  if (extensionFlavor?.includes('react')) {
+    dependencies.push({name: 'react', version: versions.react})
   }
+  const rendererDependency = getUIExtensionRendererDependency(extensionType)
+  if (rendererDependency) {
+    dependencies.push(rendererDependency)
+  }
+  return dependencies
 }
 
 async function changeIndexFileExtension(extensionDirectory: string, extensionFlavor: ExtensionFlavor) {
@@ -237,6 +227,8 @@ function functionTemplatePath({extensionType, extensionFlavor}: FunctionExtensio
       return `checkout/${lang}/shipping-rate-presenter/default`
     case 'delivery_customization':
       return `checkout/${lang}/delivery-customization/default`
+    default:
+      return 'unknown'
   }
 }
 

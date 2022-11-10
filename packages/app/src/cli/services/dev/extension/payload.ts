@@ -32,8 +32,8 @@ export async function getUIExtensionPayload(
       },
     },
     capabilities: {
-      block_progress: extension.configuration.capabilities?.block_progress || false,
-      network_access: extension.configuration.capabilities?.network_access || false,
+      blockProgress: extension.configuration.capabilities?.block_progress || false,
+      networkAccess: extension.configuration.capabilities?.network_access || false,
     },
     development: {
       ...options.currentDevelopmentPayload,
@@ -63,5 +63,6 @@ export async function getUIExtensionPayload(
     version: renderer?.version,
 
     title: extension.configuration.name,
+    approvalScopes: options.grantedScopes,
   }
 }

@@ -1,10 +1,22 @@
-import {updateURLs, generateURL, getURLs, shouldOrPromptUpdateURLs, generateFrontendURL} from './urls.js'
+import {
+  updateURLs,
+  generateURL,
+  getURLs,
+  shouldOrPromptUpdateURLs,
+  generateFrontendURL,
+  generatePartnersURLs,
+} from './urls.js'
 import {testApp} from '../../models/app/app.test-data.js'
 import {beforeEach, describe, expect, it, vi} from 'vitest'
 import {api, environment, error, outputMocker, plugins, store, ui} from '@shopify/cli-kit'
 import {Config} from '@oclif/core'
+import {err, ok} from '@shopify/cli-kit/common/result'
+import {AbortSilentError, BugError} from '@shopify/cli-kit/node/error'
+import {getAvailableTCPPort} from '@shopify/cli-kit/node/tcp'
 
 beforeEach(() => {
+  vi.mock('@shopify/cli-kit/node/tcp')
+  vi.mocked(getAvailableTCPPort).mockResolvedValue(3042)
   vi.mock('@shopify/cli-kit', async () => {
     const cliKit: any = await vi.importActual('@shopify/cli-kit')
     return {
@@ -28,13 +40,14 @@ beforeEach(() => {
       store: {
         setAppInfo: vi.fn(),
       },
-      port: {
-        getRandomPort: async () => 3042,
-      },
       environment: {
         local: {
           codespaceURL: vi.fn(),
           gitpodURL: vi.fn(),
+        },
+        spin: {
+          isSpin: vi.fn(),
+          fqdn: vi.fn(),
         },
       },
     }
@@ -45,7 +58,7 @@ describe('generateURL', () => {
   it('returns a tunnel URL by default', async () => {
     // Given
     const config = new Config({root: ''})
-    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce({url: 'https://fake-url.ngrok.io'})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(ok('https://fake-url.ngrok.io'))
 
     // When
     const got = await generateURL(config, 3456)
@@ -57,25 +70,54 @@ describe('generateURL', () => {
   it('throws error if there are multiple urls', async () => {
     // Given
     const config = new Config({root: ''})
-    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce({error: 'multiple-urls'})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(err({provider: 'ngrok', type: 'multiple-urls'}))
 
     // When
     const got = generateURL(config, 3456)
 
     // Then
+    await expect(got).rejects.toThrow(BugError)
     await expect(got).rejects.toThrow(/Multiple tunnel plugins for ngrok found/)
+  })
+
+  it('throws error if there is no provider', async () => {
+    // Given
+    const config = new Config({root: ''})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(err({provider: 'ngrok', type: 'no-provider'}))
+
+    // When
+    const got = generateURL(config, 3456)
+
+    // Then
+    await expect(got).rejects.toThrow(BugError)
+    await expect(got).rejects.toThrow(/We couldn't find the ngrok tunnel plugin/)
+  })
+
+  it('throws error if there is an unknown error with the provider', async () => {
+    // Given
+    const config = new Config({root: ''})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(
+      err({provider: 'ngrok', type: 'unknown', message: 'message'}),
+    )
+
+    // When
+    const got = generateURL(config, 3456)
+
+    // Then
+    await expect(got).rejects.toThrow(BugError)
+    await expect(got).rejects.toThrow(/message/)
   })
 
   it('throws error if there are no tunnel urls', async () => {
     // Given
     const config = new Config({root: ''})
-    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce({error: 'no-urls'})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(err({provider: 'ngrok', type: 'handled-error'}))
 
     // When
     const got = generateURL(config, 3456)
 
     // Then
-    await expect(got).rejects.toThrow(/Ngrok failed to start the tunnel/)
+    await expect(got).rejects.toThrow(AbortSilentError)
   })
 })
 
@@ -323,7 +365,7 @@ describe('generateFrontendURL', () => {
 
   it('generates a tunnel url when tunnel is true and there is no tunnelUrl and there are no extensions', async () => {
     // Given
-    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce({url: 'https://fake-url.ngrok.io'})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(ok('https://fake-url.ngrok.io'))
     const options = {
       app: testApp({hasUIExtensions: () => false}),
       tunnel: true,
@@ -408,7 +450,7 @@ describe('generateFrontendURL', () => {
 
   it('Reuses tunnel option if cached even if tunnel is false and there are no extensions', async () => {
     // Given
-    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce({url: 'https://fake-url.ngrok.io'})
+    vi.mocked(plugins.runTunnelPlugin).mockResolvedValueOnce(ok('https://fake-url.ngrok.io'))
     const options = {
       app: testApp({hasUIExtensions: () => false, directory: '/app-path'}),
       tunnel: false,
@@ -466,5 +508,76 @@ describe('generateFrontendURL', () => {
     })
     expect(store.setAppInfo).not.toBeCalled()
     expect(ui.prompt).not.toBeCalled()
+  })
+
+  it('Returns a spin url if we are in a spin environment', async () => {
+    // Given
+    vi.mocked(environment.spin.isSpin).mockReturnValue(true)
+    vi.mocked(environment.spin.fqdn).mockResolvedValue('spin.domain.dev')
+    const options = {
+      app: testApp({hasUIExtensions: () => false}),
+      tunnel: false,
+      noTunnel: false,
+      commandConfig: new Config({root: ''}),
+    }
+
+    // When
+    const got = await generateFrontendURL(options)
+
+    // Then
+    expect(got).toEqual({
+      frontendUrl: 'https://cli.spin.domain.dev',
+      frontendPort: 4040,
+      usingLocalhost: false,
+    })
+    expect(store.setAppInfo).not.toBeCalled()
+    expect(ui.prompt).not.toBeCalled()
+  })
+
+  it('Returns a custom tunnel url if we are in a spin environment but a custom tunnel option is active', async () => {
+    // Given
+    vi.mocked(environment.spin.isSpin).mockReturnValue(true)
+    const options = {
+      app: testApp({hasUIExtensions: () => false}),
+      tunnel: true,
+      noTunnel: false,
+      tunnelUrl: 'https://my-tunnel-provider.io:4242',
+      commandConfig: new Config({root: ''}),
+    }
+
+    // When
+    const got = await generateFrontendURL(options)
+
+    // Then
+    expect(got).toEqual({frontendUrl: 'https://my-tunnel-provider.io', frontendPort: 4242, usingLocalhost: false})
+  })
+})
+
+describe('generatePartnersURLs', () => {
+  it('Returns the default values without an override', () => {
+    const applicationUrl = 'http://my-base-url'
+
+    const got = generatePartnersURLs(applicationUrl)
+
+    expect(got).toMatchObject({
+      applicationUrl,
+      redirectUrlWhitelist: [
+        `${applicationUrl}/auth/callback`,
+        `${applicationUrl}/auth/shopify/callback`,
+        `${applicationUrl}/api/auth/callback`,
+      ],
+    })
+  })
+
+  it('Returns just the override value when set', () => {
+    const applicationUrl = 'http://my-base-url'
+    const overridePath = '/my/custom/path'
+
+    const got = generatePartnersURLs(applicationUrl, overridePath)
+
+    expect(got).toMatchObject({
+      applicationUrl,
+      redirectUrlWhitelist: [`${applicationUrl}${overridePath}`],
+    })
   })
 })

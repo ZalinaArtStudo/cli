@@ -1,7 +1,7 @@
-import {CancelExecution, Abort} from './error.js'
+import {CancelExecution, Abort, AbortSilent} from './error.js'
 import {remove, exists} from './file.js'
-import {info, completed, content, token, logUpdate, Message, Logger, stringifyMessage} from './output.js'
-import {colors} from './node/colors.js'
+import {info, completed, content, token, logUpdate, Message, Logger, stringifyMessage, debug} from './output.js'
+import colors from './public/node/colors.js'
 import {relative} from './path.js'
 import {isTerminalInteractive} from './environment/local.js'
 import {mapper as mapperUI, run as executorUI} from './ui/executor.js'
@@ -172,12 +172,22 @@ export async function terminateBlockingPortProcessPrompt(port: number, stepDescr
 }
 
 export const keypress = async () => {
-  process.stdin.setRawMode(true)
-  process.stdin.resume()
-  return new Promise<void>((resolve) =>
-    process.stdin.once('data', () => {
+  return new Promise((resolve, reject) => {
+    const handler = (buffer: Buffer) => {
       process.stdin.setRawMode(false)
-      resolve()
-    }),
-  )
+      process.stdin.pause()
+
+      const bytes = Array.from(buffer)
+
+      if (bytes.length && bytes[0] === 3) {
+        debug('Canceled keypress, User pressed CTRL+C')
+        reject(new AbortSilent())
+      }
+      process.nextTick(resolve)
+    }
+
+    process.stdin.resume()
+    process.stdin.setRawMode(true)
+    process.stdin.once('data', handler)
+  })
 }

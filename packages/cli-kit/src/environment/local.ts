@@ -83,12 +83,12 @@ export function firstPartyDev(env = process.env): boolean {
   return isTruthy(env[constants.environmentVariables.firstPartyDev])
 }
 
-export function isDebugGoBinary(env = process.env): boolean {
-  return isTruthy(env[constants.environmentVariables.debugGoBinary])
-}
-
 export function useDeviceAuth(env = process.env): boolean {
   return isTruthy(env[constants.environmentVariables.deviceAuth]) || isCloudEnvironment(env)
+}
+
+export function useFunctionMatching(env = process.env): boolean {
+  return isTruthy(env[constants.environmentVariables.functionMatching])
 }
 
 // https://www.gitpod.io/docs/environment-variables#default-environment-variables
@@ -124,13 +124,13 @@ export function cloudEnvironment(env: NodeJS.ProcessEnv = process.env): {
   platform: 'spin' | 'codespaces' | 'gitpod' | 'localhost'
   editor: boolean
 } {
-  if (isTruthy(env[constants.environmentVariables.codespaces])) {
+  if (isSet(env[constants.environmentVariables.codespaces])) {
     return {platform: 'codespaces', editor: true}
   }
-  if (isTruthy(env[constants.environmentVariables.gitpod])) {
+  if (isSet(env[constants.environmentVariables.gitpod])) {
     return {platform: 'gitpod', editor: true}
   }
-  if (isTruthy(env[constants.environmentVariables.spin])) {
+  if (isSpin(env)) {
     return {platform: 'spin', editor: false}
   }
   return {platform: 'localhost', editor: false}

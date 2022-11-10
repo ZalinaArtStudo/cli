@@ -1,6 +1,6 @@
 {
   "name": "@shopify/cli-kit",
-  "version": "3.16.3",
+  "version": "3.22.1",
   "private": false,
   "description": "A set of utilities, interfaces, and models that are common across all the platform features",
   "keywords": [
@@ -17,21 +17,9 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./common/array": {
-      "import": "./dist/public/common/array.js",
-      "types": "./dist/public/common/array.d.ts"
-    },
-    "./node/*": {
-      "node": "./dist/node/*.js",
-      "types": "./dist/node/*.d.ts"
-    },
-    "./plugins/*": {
-      "node": "./dist/plugins/*.js",
-      "types": "./dist/plugins/*.d.ts"
-    },
-    "./common/*": {
-      "node": "./dist/common/*.js",
-      "types": "./dist/common/*.d.ts"
+    "./*": {
+      "node": "./dist/public/*.js",
+      "types": "./dist/public/*.d.ts"
     },
     "./testing/*": {
       "node": "./dist/testing/*.js",
@@ -67,7 +55,7 @@
   },
   "engine-strict": true,
   "engines": {
-    "node": ">=14.13.1"
+    "node": ">=14.17.0"
   },
   "os": [
     "darwin",
@@ -80,8 +68,9 @@
     "@oclif/core": "1.9.2",
     "@types/archiver": "^5.3.1",
     "abort-controller": "^3.0.0",
-    "ansi-colors": "^4.1.1",
     "archiver": "^5.3.1",
+    "chalk": "^5.1.0",
+    "chalk-animation": "^2.0.3",
     "change-case": "^4.1.2",
     "color-json": "^2.0.1",
     "commondir": "^1.0.1",
@@ -103,10 +92,10 @@
     "graphql": "^16.4.0",
     "graphql-request": "^4.3.0",
     "h3": "^0.7.21",
+    "ink": "^3.2.0",
     "inquirer": "^8.2.4",
     "inquirer-autocomplete-prompt": "^2.0.0",
     "is-interactive": "^2.0.0",
-    "js-yaml": "^4.1.0",
     "keytar": "^7.9.0",
     "kill-port-process": "^3.1.0",
     "latest-version": "^6.0.0",
@@ -119,6 +108,7 @@
     "open": "^8.4.0",
     "pathe": "0.2.0",
     "prettier": "^2.7.1",
+    "react": "^17.0.2",
     "semver": "^7.3.6",
     "simple-git": "^3.5.0",
     "source-map-support": "^0.5.21",
@@ -136,7 +126,6 @@
     "@types/cross-zip": "^4.0.0",
     "@types/diff": "^5.0.2",
     "@types/inquirer": "^8.2.1",
-    "@types/js-yaml": "^4.0.5",
     "@types/semver": "^7.3.9",
     "node-stream-zip": "^1.15.0",
     "vitest": "^0.22.1"

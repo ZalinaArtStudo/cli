@@ -1,5 +1,111 @@
 # @shopify/app
 
+## 3.22.1
+
+### Patch Changes
+
+- b9275c2b: Fix dev-console not loading because it can't be found
+  - @shopify/cli-kit@3.22.1
+
+## 3.22.0
+
+### Patch Changes
+
+- Updated dependencies [e0b5c20b]
+- Updated dependencies [6de19ebd]
+- Updated dependencies [6c0cd13d]
+- Updated dependencies [7035d36b]
+  - @shopify/cli-kit@3.22.0
+
+## 3.21.0
+
+### Minor Changes
+
+- ad31c0bd: Adding support for a new auth_callback_path setting in web.shopify.toml, which overrides the values in the app setup when running the dev command.
+
+  This enables apps to use custom paths for their OAuth callback, but still have the CLI set the appropriate value in the Partners Dashboard to keep the development flow unchanged.
+
+  If you use a non-standard OAuth callback path, you can set this value to have the CLI automatically set the correct value for you.
+
+- 5cda6300: Enable external access to cli inside a spin instance
+
+### Patch Changes
+
+- e4352f2e: Do not report handled tunnel plugin errors to Bugsnag
+- Updated dependencies [e4352f2e]
+- Updated dependencies [c906187f]
+- Updated dependencies [5cda6300]
+  - @shopify/cli-kit@3.21.0
+  - @shopify/shopify-cli-extensions@3.21.0
+
+## 3.20.1
+
+### Patch Changes
+
+- Updated dependencies [3f285ff9]
+  - @shopify/cli-kit@3.20.1
+  - @shopify/shopify-cli-extensions@3.20.1
+
+## 3.20.0
+
+### Minor Changes
+
+- 96d5b175: Enable experimental presets feature for apps and themes
+- 1e157c5b: Default to Node for building and deving extensions
+- 4bd05555: Add experimental preset flag for pre-specifying command line flags
+
+### Patch Changes
+
+- 48dfd98e: Include the approvalScopes attributes when serving extensions form the new extensions' server implemented in Node
+- Updated dependencies [96d5b175]
+- Updated dependencies [0a8ee2a3]
+- Updated dependencies [efa5b071]
+- Updated dependencies [4bd05555]
+  - @shopify/cli-kit@3.20.0
+  - @shopify/shopify-cli-extensions@3.20.0
+
+## 3.19.0
+
+### Patch Changes
+
+- Updated dependencies [7bb5c23f]
+  - @shopify/cli-kit@3.19.0
+  - @shopify/shopify-cli-extensions@3.19.0
+
+## 3.18.0
+
+### Minor Changes
+
+- b4dafa4f: Add timestamps to logs and introduce first UI kit components
+- 65625f47: Send a new environment variable to apps in dev command with the spin store domain.
+
+### Patch Changes
+
+- 1455ee44: Improve how concurrent processes output looks
+- 5a73a0e2: Remove old workaround for extensions resource_url
+- 0d674d64: Output messages with partners urls fixed when running against an spin instance
+- Updated dependencies [ef42fda6]
+- Updated dependencies [514f2cb5]
+- Updated dependencies [1455ee44]
+- Updated dependencies [b4dafa4f]
+- Updated dependencies [65625f47]
+- Updated dependencies [0d674d64]
+  - @shopify/cli-kit@3.18.0
+  - @shopify/shopify-cli-extensions@3.18.0
+
+## 3.17.0
+
+### Patch Changes
+
+- 7576f700: Send capabilities in payload as camelCase
+- dac186b2: Removing unnecessary calls to enqueue and check compilation status
+- Updated dependencies [dac186b2]
+- Updated dependencies [5617050a]
+- Updated dependencies [5703ce9b]
+- Updated dependencies [483318aa]
+  - @shopify/cli-kit@3.17.0
+  - @shopify/shopify-cli-extensions@3.17.0
+
 ## 3.16.3
 
 ### Patch Changes

@@ -12,9 +12,11 @@ import {AppInterface, AppConfiguration, Web, WebType} from '../models/app/app.js
 import metadata from '../metadata.js'
 import {UIExtension} from '../models/app/extensions.js'
 import {fetchProductVariant} from '../utilities/extensions/fetch-product-variant.js'
-import {analytics, output, port, system, session, abort, string} from '@shopify/cli-kit'
+import {analytics, output, system, session, abort, string, environment} from '@shopify/cli-kit'
 import {Config} from '@oclif/core'
 import {execCLI2} from '@shopify/cli-kit/node/ruby'
+import {renderConcurrent} from '@shopify/cli-kit/node/ui'
+import {getAvailableTCPPort} from '@shopify/cli-kit/node/tcp'
 import {Writable} from 'node:stream'
 
 export interface DevOptions {
@@ -66,7 +68,7 @@ async function dev(options: DevOptions) {
     cachedTunnelPlugin: tunnelPlugin,
   })
 
-  const backendPort = await port.getRandomPort()
+  const backendPort = await getAvailableTCPPort()
 
   const frontendConfig = options.app.webs.find(({configuration}) => configuration.type === WebType.Frontend)
   const backendConfig = options.app.webs.find(({configuration}) => configuration.type === WebType.Backend)
@@ -76,7 +78,7 @@ async function dev(options: DevOptions) {
   let shouldUpdateURLs = false
   if ((frontendConfig || backendConfig) && options.update) {
     const currentURLs = await getURLs(apiKey, token)
-    const newURLs = generatePartnersURLs(exposedUrl)
+    const newURLs = generatePartnersURLs(exposedUrl, backendConfig?.configuration.auth_callback_path)
     shouldUpdateURLs = await shouldOrPromptUpdateURLs({
       currentURLs,
       appDirectory: options.app.directory,
@@ -84,7 +86,7 @@ async function dev(options: DevOptions) {
       newApp: app.newApp,
     })
     if (shouldUpdateURLs) await updateURLs(newURLs, apiKey, token)
-    outputUpdateURLsResult(shouldUpdateURLs, newURLs, app)
+    await outputUpdateURLsResult(shouldUpdateURLs, newURLs, app)
     outputAppURL(storeFqdn, exposedUrl)
   }
 
@@ -100,7 +102,7 @@ async function dev(options: DevOptions) {
   }
 
   const proxyTargets: ReverseHTTPProxyTarget[] = []
-  const proxyPort = usingLocalhost ? await port.getRandomPort() : frontendPort
+  const proxyPort = usingLocalhost ? await getAvailableTCPPort() : frontendPort
   const proxyUrl = usingLocalhost ? `${frontendUrl}:${proxyPort}` : frontendUrl
 
   if (options.app.extensions.ui.length > 0) {
@@ -130,7 +132,7 @@ async function dev(options: DevOptions) {
   }
 
   if (backendConfig) {
-    additionalProcesses.push(devBackendTarget(backendConfig, backendOptions))
+    additionalProcesses.push(await devBackendTarget(backendConfig, backendOptions))
   }
 
   if (frontendConfig) {
@@ -155,7 +157,7 @@ async function dev(options: DevOptions) {
   await analytics.reportEvent({config: options.commandConfig})
 
   if (proxyTargets.length === 0) {
-    await output.concurrent(additionalProcesses)
+    await renderConcurrent({processes: additionalProcesses})
   } else {
     await runConcurrentHTTPProcessesAndPathForwardTraffic(proxyPort, proxyTargets, additionalProcesses)
   }
@@ -225,7 +227,7 @@ function devFrontendProxyTarget(options: DevFrontendTargetOptions): ReverseHTTPP
   }
 }
 
-function devBackendTarget(web: Web, options: DevWebOptions): output.OutputProcess {
+async function devBackendTarget(web: Web, options: DevWebOptions): Promise<output.OutputProcess> {
   const {commands} = web.configuration
   const [cmd, ...args] = commands.dev.split(' ')
   const env = {
@@ -238,6 +240,9 @@ function devBackendTarget(web: Web, options: DevWebOptions): output.OutputProces
     BACKEND_PORT: `${options.backendPort}`,
     SCOPES: options.scopes,
     NODE_ENV: `development`,
+    ...(environment.service.isSpinEnvironment() && {
+      SHOP_CUSTOM_DOMAIN: `shopify.${await environment.spin.fqdn()}`,
+    }),
   }
 
   return {

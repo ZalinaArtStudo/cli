@@ -23,10 +23,10 @@ import {
   mapExtensionTypeToExternalExtensionType,
 } from '../../../utilities/extensions/name-mapper.js'
 import metadata from '../../../metadata.js'
+import Command from '../../../utilities/app-command.js'
 import {output, path, cli, error, environment} from '@shopify/cli-kit'
 import {Flags} from '@oclif/core'
 import {PackageManager} from '@shopify/cli-kit/node/node-package-manager'
-import Command from '@shopify/cli-kit/node/base-command'
 
 export default class AppScaffoldExtension extends Command {
   static description = 'Scaffold an Extension'
@@ -127,7 +127,7 @@ export default class AppScaffoldExtension extends Command {
     }
     const isShopify = await environment.local.isShopify()
     const supportedExtensions = isShopify ? extensions.types : extensions.publicTypes
-    if (!(supportedExtensions as string[]).includes(type)) {
+    if (!supportedExtensions.includes(type)) {
       throw new error.Abort(
         `The following extension types are supported: ${mapExtensionTypesToExternalExtensionTypes(
           supportedExtensions,
@@ -146,9 +146,7 @@ export default class AppScaffoldExtension extends Command {
     if (type && this.limitedExtensionsAlreadyScaffolded(app).includes(type)) {
       throw new error.Abort(
         'Invalid extension type',
-        `You can only scaffold one extension of type ${mapExtensionTypeToExternalExtensionType(
-          type as ExtensionTypes,
-        )} per app`,
+        `You can only scaffold one extension of type ${mapExtensionTypeToExternalExtensionType(type)} per app`,
       )
     }
   }
@@ -161,6 +159,7 @@ export default class AppScaffoldExtension extends Command {
     const functionExtensionTemplateNames = functionExtensionTemplates.map((template) => template.value)
 
     const invalidTemplateError = (templates: string[]) => {
+      // eslint-disable-next-line rulesdir/no-error-factory-functions
       return new error.Abort(
         'Specified extension template on invalid extension type',
         `You can only specify a template for these extension types: ${templates.join(', ')}.`,

@@ -1,7 +1,9 @@
 import {updateURLsPrompt} from '../../prompts/dev.js'
 import {AppInterface} from '../../models/app/app.js'
-import {api, environment, error, output, plugins, port, store} from '@shopify/cli-kit'
+import {api, environment, output, plugins, store} from '@shopify/cli-kit'
+import {AbortError, AbortSilentError, BugError} from '@shopify/cli-kit/node/error'
 import {Config} from '@oclif/core'
+import {getAvailableTCPPort} from '@shopify/cli-kit/node/tcp'
 
 export interface PartnersURLs {
   applicationUrl: string
@@ -27,6 +29,8 @@ export interface FrontendURLResult {
  * The tunnel creation logic depends on 7 variables:
  * - If a Codespaces environment is deteced, then the URL is built using the codespaces hostname. No need for tunnel
  * - If a Gitpod environment is detected, then the URL is built using the gitpod hostname. No need for tunnel
+ * - If a Spin environment is detected, then the URL is built using the cli + fqdn hostname as configured in nginx.
+ *   No need for tunnel. In case problems with that configuration, the flags Tunnel or Custom Tunnel url could be used
  * - If a tunnelUrl is provided, that takes preference and is returned as the frontendURL
  * - If noTunnel is true, that takes second preference and localhost is used
  * - A Tunnel is created then if any of these conditions are met:
@@ -56,10 +60,15 @@ export async function generateFrontendURL(options: FrontendURLOptions): Promise<
     return {frontendUrl, frontendPort, usingLocalhost}
   }
 
+  if (environment.spin.isSpin() && !options.tunnelUrl) {
+    frontendUrl = `https://cli.${await environment.spin.fqdn()}`
+    return {frontendUrl, frontendPort, usingLocalhost}
+  }
+
   if (options.tunnelUrl) {
     const matches = options.tunnelUrl.match(/(https:\/\/[^:]+):([0-9]+)/)
     if (!matches) {
-      throw new error.Abort(`Invalid tunnel URL: ${options.tunnelUrl}`, 'Valid format: "https://my-tunnel-url:port"')
+      throw new AbortError(`Invalid tunnel URL: ${options.tunnelUrl}`, 'Valid format: "https://my-tunnel-url:port"')
     }
     frontendPort = Number(matches[2])
     frontendUrl = matches[1]!
@@ -67,10 +76,10 @@ export async function generateFrontendURL(options: FrontendURLOptions): Promise<
   }
 
   if (needsTunnel) {
-    frontendPort = await port.getRandomPort()
+    frontendPort = await getAvailableTCPPort()
     frontendUrl = await generateURL(options.commandConfig, frontendPort)
   } else {
-    frontendPort = await port.getRandomPort()
+    frontendPort = await getAvailableTCPPort()
     frontendUrl = 'http://localhost'
     usingLocalhost = true
   }
@@ -81,22 +90,28 @@ export async function generateFrontendURL(options: FrontendURLOptions): Promise<
 export async function generateURL(config: Config, frontendPort: number): Promise<string> {
   // For the moment we assume to always have ngrok, this will change in a future PR
   // and will need to use "getListOfTunnelPlugins" to find the available tunnel plugins
-  const result = await plugins.runTunnelPlugin(config, frontendPort, 'ngrok')
-
-  if (result.error === 'multiple-urls') throw new error.Bug('Multiple tunnel plugins for ngrok found')
-  if (result.error === 'no-urls' || !result.url) throw new error.Bug('Ngrok failed to start the tunnel')
-  output.success('The tunnel is running and you can now view your app')
-  return result.url
+  const provider = 'ngrok'
+  return (await plugins.runTunnelPlugin(config, frontendPort, provider))
+    .doOnOk(() => output.success('The tunnel is running and you can now view your app'))
+    .mapError(mapRunTunnelPluginError)
+    .valueOrThrow()
 }
 
-export function generatePartnersURLs(baseURL: string): PartnersURLs {
-  return {
-    applicationUrl: baseURL,
-    redirectUrlWhitelist: [
+export function generatePartnersURLs(baseURL: string, authCallbackPath?: string): PartnersURLs {
+  let redirectUrlWhitelist: string[]
+  if (authCallbackPath && authCallbackPath.length > 0) {
+    redirectUrlWhitelist = [`${baseURL}${authCallbackPath}`]
+  } else {
+    redirectUrlWhitelist = [
       `${baseURL}/auth/callback`,
       `${baseURL}/auth/shopify/callback`,
       `${baseURL}/api/auth/callback`,
-    ],
+    ]
+  }
+
+  return {
+    applicationUrl: baseURL,
+    redirectUrlWhitelist,
   }
 }
 
@@ -106,7 +121,7 @@ export async function updateURLs(urls: PartnersURLs, apiKey: string, token: stri
   const result: api.graphql.UpdateURLsQuerySchema = await api.partners.request(query, token, variables)
   if (result.appUpdate.userErrors.length > 0) {
     const errors = result.appUpdate.userErrors.map((error) => error.message).join(', ')
-    throw new error.Abort(errors)
+    throw new AbortError(errors)
   }
 }
 
@@ -150,4 +165,17 @@ export async function shouldOrPromptUpdateURLs(options: ShouldOrPromptUpdateURLs
     await store.setAppInfo({directory: options.appDirectory, updateURLs: newUpdateURLs})
   }
   return shouldUpdate
+}
+
+function mapRunTunnelPluginError(tunnelPluginError: plugins.TunnelPluginError) {
+  switch (tunnelPluginError.type) {
+    case 'no-provider':
+      return new BugError(`We couldn't find the ${tunnelPluginError.provider} tunnel plugin`)
+    case 'multiple-urls':
+      return new BugError('Multiple tunnel plugins for ngrok found')
+    case 'unknown':
+      return new BugError(`${tunnelPluginError.provider} failed to start the tunnel.\n${tunnelPluginError.message}`)
+    default:
+      return new AbortSilentError()
+  }
 }

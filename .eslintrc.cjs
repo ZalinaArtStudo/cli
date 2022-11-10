@@ -6,6 +6,7 @@ rulesDirPlugin.RULES_DIR = path.join(__dirname, 'eslint-rules')
 
 module.exports = {
   parser: '@typescript-eslint/parser',
+  settings: {},
   parserOptions: {
     project: './tsconfig.json',
     EXPERIMENTAL_useSourceOfProjectReferenceRedirect: true,
@@ -72,6 +73,7 @@ module.exports = {
         format: null,
       },
     ],
+    'import/extensions': ['error', 'always', {ignorePackages: true}],
     '@typescript-eslint/no-misused-promises': 'error',
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-unnecessary-type-assertion': 'error',
@@ -144,6 +146,7 @@ module.exports = {
     'rulesdir/command-flags-with-env': 'error',
     'rulesdir/command-conventional-flag-env': 'error',
     'rulesdir/command-reserved-flags': 'error',
+    'rulesdir/no-error-factory-functions': 'error',
     'no-restricted-syntax': [
       'error',
       {

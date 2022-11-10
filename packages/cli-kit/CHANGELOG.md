@@ -1,5 +1,77 @@
 # @shopify/cli-kit
 
+## 3.22.1
+
+## 3.22.0
+
+### Patch Changes
+
+- e0b5c20b: Update the version of the Ruby CLI
+- 6de19ebd: Move haiku's exported logic into the @shopify/cli-kit/common/string and @shopify/cli-kit/node/fs modules and remove the export from @shopify/cli-kit
+- 6c0cd13d: Polish log truncation process
+- 7035d36b: Fixed third party errors formatting issue
+
+## 3.21.0
+
+### Minor Changes
+
+- 5cda6300: Enable external access to cli inside a spin instance
+
+### Patch Changes
+
+- e4352f2e: Do not report handled tunnel plugin errors to Bugsnag
+- c906187f: Add backticks surrounding command tokens
+
+## 3.20.1
+
+### Patch Changes
+
+- 3f285ff9: Fix homebrew upgrade to handle shopify-cli package
+
+## 3.20.0
+
+### Minor Changes
+
+- 96d5b175: Enable experimental presets feature for apps and themes
+- 4bd05555: Add experimental preset flag for pre-specifying command line flags
+
+### Patch Changes
+
+- 0a8ee2a3: Document how to style error messages
+- efa5b071: Refresh theme dev session every 90 minutes
+
+## 3.19.0
+
+### Minor Changes
+
+- 7bb5c23f: Add ensureAuthenticatedThemes helper for session
+
+## 3.18.0
+
+### Minor Changes
+
+- b4dafa4f: Add timestamps to logs and introduce first UI kit components
+- 65625f47: Send a new environment variable to apps in dev command with the spin store domain.
+
+### Patch Changes
+
+- ef42fda6: Improve error outputs by using the new Banner component
+- 514f2cb5: Support git 2.28 or earlier when initializing a repository
+- 1455ee44: Improve how concurrent processes output looks
+- 0d674d64: Output messages with partners urls fixed when running against an spin instance
+
+## 3.17.0
+
+### Minor Changes
+
+- 483318aa: Create a new Oxygen service for interacting with Oxygen related services.
+
+### Patch Changes
+
+- dac186b2: Removing unnecessary calls to enqueue and check compilation status
+- 5617050a: initializeRepository now defaults to 'main' as initial branch.
+- 5703ce9b: Cloud environment checking was not working properly so wrong authentication method was used
+
 ## 3.16.3
 
 ### Patch Changes

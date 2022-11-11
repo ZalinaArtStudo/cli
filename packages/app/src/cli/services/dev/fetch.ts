@@ -20,6 +20,7 @@ export const NoOrgError = (organizationId?: string) => {
       )}`,
     )
   }
+  // eslint-disable-next-line rulesdir/no-error-factory-functions
   return new error.Abort(
     `No Organization found`,
     nextSteps.map((content) => `· ${output.stringifyMessage(content)}`).join('\n'),

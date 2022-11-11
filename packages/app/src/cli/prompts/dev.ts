@@ -20,7 +20,7 @@ export async function selectOrganizationPrompt(organizations: Organization[]): P
 
 export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, token: string): Promise<OrganizationApp> {
   const appsByApiKey: {[apiKey: string]: OrganizationApp} = {}
-  const addToApiKeyCache = (apps: OrganizationApp[]) => apps.forEach((app) => appsByApiKey[app.apiKey] = app)
+  const addToApiKeyCache = (apps: OrganizationApp[]) => apps.forEach((app) => (appsByApiKey[app.apiKey] = app))
   addToApiKeyCache(apps)
 
   const toAnswer = (app: OrganizationApp) => ({name: app.title, value: app.apiKey})
@@ -40,7 +40,8 @@ export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, to
    * If we don't have any previously unseen input to search for, return without
    * action.
    */
-  let cachedResults: {[input: string]: OrganizationApp[]} = {'': apps}
+  const cachedResults: {[input: string]: OrganizationApp[]} = {'': apps}
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises
   const fetchInterval = setInterval(async () => {
     let input: string | undefined
     do {
@@ -49,6 +50,7 @@ export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, to
     } while (cachedResults[input])
     const result = await fetchOrgAndApps(orgId, token, input)
     addToApiKeyCache(result.apps)
+    // eslint-disable-next-line require-atomic-updates
     cachedResults[input] = result.apps
   }, 1000)
 
@@ -72,10 +74,14 @@ export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, to
           latestRequest = input
           allInputs.push(input)
           // Await the event loop returning a result
-          while (!cachedResults[input]) { await system.sleep(0.2) }
+          while (!cachedResults[input]) {
+            // eslint-disable-next-line no-await-in-loop
+            await system.sleep(0.2)
+          }
 
           // Cache the answerified results to avoid race conditions
           if (!cachedFiltered[input]) {
+            // eslint-disable-next-line require-atomic-updates
             cachedFiltered[input] = await filterFunction(cachedResults[input]!.map(toAnswer), input)
           }
 
@@ -87,7 +93,7 @@ export async function selectAppPrompt(apps: OrganizationApp[], orgId: string, to
            */
           return cachedFiltered[latestRequest] || cachedFiltered[input]!
         }
-      }
+      },
     },
   ])
   clearInterval(fetchInterval)

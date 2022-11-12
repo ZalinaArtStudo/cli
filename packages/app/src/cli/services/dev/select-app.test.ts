@@ -120,7 +120,7 @@ describe('selectOrCreateApp', () => {
 
     // Then
     expect(got).toEqual(APP1)
-    expect(selectAppPrompt).toHaveBeenCalledWith([APP1, APP2, ORG1.id, 'token'])
+    expect(selectAppPrompt).toHaveBeenCalledWith([APP1, APP2], ORG1.id, 'token')
   })
 
   it('prompts user to select if cachedApiKey is invalid and chooses to select', async () => {
@@ -135,7 +135,7 @@ describe('selectOrCreateApp', () => {
 
     // Then
     expect(got).toEqual(APP1)
-    expect(selectAppPrompt).toHaveBeenCalledWith([APP1, APP2])
+    expect(selectAppPrompt).toHaveBeenCalledWith([APP1, APP2], ORG1.id, 'token')
   })
 
   it('prompts user to create if chooses to create', async () => {

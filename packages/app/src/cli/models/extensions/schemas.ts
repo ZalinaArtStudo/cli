@@ -3,6 +3,8 @@ import {schema} from '@shopify/cli-kit'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ZodSchemaType<T> = schema.define.ZodType<T, any, any>
 
+// Once we migrate all extensions to the new format
+// we might not need to export this nor seperate it out
 export const MetafieldSchema = schema.define.object({
   namespace: schema.define.string(),
   key: schema.define.string(),
@@ -17,23 +19,23 @@ export const TypeSchema = schema.define.object({
   type: schema.define.string().default('ui-extension'),
 })
 
-export const ExtensionPointSchema = schema.define.object({
-  type: schema.define.string(),
-  module: schema.define.string(),
-  metafields: schema.define.array(MetafieldSchema).optional(),
-  capabilities: CapabilitiesSchema.optional(),
-})
+// OldExtensionPointsSchema can be deleted
+// once we migrate all extensions to the new format
+export const OldExtensionPointsSchema = schema.define.array(schema.define.string()).default([])
+export const NewExtensionPointsSchema = schema.define.array(
+  schema.define.object({
+    target: schema.define.string(),
+    module: schema.define.string(),
+    metafields: schema.define.array(MetafieldSchema).optional().default([]),
+  }),
+)
+export const ExtensionPointSchema = schema.define.union([OldExtensionPointsSchema, NewExtensionPointsSchema]).optional()
 
 export const BaseExtensionSchema = schema.define.object({
   name: schema.define.string(),
   type: schema.define.string(),
-  extensionPoints: schema.define.array(schema.define.string()).optional(),
-  capabilities: schema.define
-    .object({
-      block_progress: schema.define.boolean().optional(),
-      network_access: schema.define.boolean().optional(),
-    })
-    .optional(),
+  extensionPoints: ExtensionPointSchema.optional(),
+  capabilities: CapabilitiesSchema.optional(),
   metafields: schema.define.array(MetafieldSchema).optional().default([]),
   categories: schema.define.array(schema.define.string()).optional(),
 })

@@ -11,13 +11,20 @@ const UIExtensionSchema = BaseExtensionSchema.extend({
 })
 
 const spec = createExtensionSpec({
-  identifier: 'checkout_ui_extension_beta',
+  identifier: 'ui_extension',
   externalIdentifier: 'checkout_ui_beta',
   externalName: 'Checkout UI Beta',
   surface: 'checkout',
   dependency: {name: '@shopify/checkout-ui-extensions-react', version: '^0.20.0'},
   partnersWebId: 'ui_extension',
   schema: UIExtensionSchema,
+  buildOptions: async (app, config, path, environment) => {
+    return {
+      minify: true,
+      environment: 'production',
+      env: app.dotenv?.variables ?? {},
+    }
+  },
   deployConfig: async (config, directory) => {
     return {
       extension_points: config.extensionPoints,

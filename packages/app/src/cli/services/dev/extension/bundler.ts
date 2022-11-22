@@ -1,6 +1,6 @@
 import {ExtensionsPayloadStore} from './payload/store.js'
 import {ExtensionDevOptions} from '../extension.js'
-import {bundleExtension} from '../../extensions/bundle.js'
+import {bundleExtension, BundleOptions} from '../../extensions/bundle.js'
 import {abort, path, output} from '@shopify/cli-kit'
 import chokidar from 'chokidar'
 
@@ -18,7 +18,7 @@ export interface FileWatcher {
   close: () => void
 }
 
-export async function setupBundlerAndFileWatcher(options: FileWatcherOptions) {
+export async function setupBundlerAndFileWatcher(options: FileWatcherOptions, customOptions: Partial<BundleOptions>) {
   const abortController = new abort.Controller()
 
   const bundlers: Promise<void>[] = []
@@ -26,32 +26,35 @@ export async function setupBundlerAndFileWatcher(options: FileWatcherOptions) {
   options.devOptions.extensions.forEach((extension) => {
     bundlers.push(
       bundleExtension({
-        minify: false,
-        outputBundlePath: extension.outputBundlePath,
-        sourceFilePath: extension.entrySourceFilePath,
-        environment: 'development',
-        env: {
-          ...(options.devOptions.app.dotenv?.variables ?? {}),
-          APP_URL: options.devOptions.url,
-        },
-        stderr: options.devOptions.stderr,
-        stdout: options.devOptions.stdout,
-        watchSignal: abortController.signal,
-        watch: (error) => {
-          output.debug(
-            `The Javascript bundle of the UI extension with ID ${extension.devUUID} has ${
-              error ? 'an error' : 'changed'
-            }`,
-          )
+        ...{
+          minify: false,
+          outputBundlePath: extension.outputBundlePath,
+          sourceFilePath: extension.entrySourceFilePath,
+          environment: 'development',
+          env: {
+            ...(options.devOptions.app.dotenv?.variables ?? {}),
+            APP_URL: options.devOptions.url,
+          },
+          stderr: options.devOptions.stderr,
+          stdout: options.devOptions.stdout,
+          watchSignal: abortController.signal,
+          watch: (error) => {
+            output.debug(
+              `The Javascript bundle of the UI extension with ID ${extension.devUUID} has ${
+                error ? 'an error' : 'changed'
+              }`,
+            )
 
-          options.payloadStore
-            .updateExtension(extension, {
-              status: error ? 'error' : 'success',
-            })
-            // ESBuild handles error output
-            .then((_) => {})
-            .catch((_) => {})
+            options.payloadStore
+              .updateExtension(extension, {
+                status: error ? 'error' : 'success',
+              })
+              // ESBuild handles error output
+              .then((_) => {})
+              .catch((_) => {})
+          },
         },
+        ...customOptions,
       }),
     )
 

@@ -2,7 +2,7 @@ import {abort, path} from '@shopify/cli-kit'
 import {build as esBuild, BuildFailure, BuildResult, formatMessagesSync} from 'esbuild'
 import {Writable} from 'node:stream'
 
-interface BundleOptions {
+export interface BundleOptions {
   minify: boolean
   env: {[variable: string]: string}
   outputBundlePath: string

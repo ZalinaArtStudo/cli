@@ -16,7 +16,7 @@ export const CapabilitiesSchema = schema.define.object({
 })
 
 export const TypeSchema = schema.define.object({
-  type: schema.define.string().default('ui-extension'),
+  type: schema.define.string().default('ui_extension'),
 })
 
 // OldExtensionPointsSchema can be deleted

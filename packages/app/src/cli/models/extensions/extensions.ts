@@ -2,9 +2,11 @@ import {BaseExtensionSchema, ExtensionPointSchema, ZodSchemaType} from './schema
 import {ExtensionPointSpec} from './extension-points.js'
 import {allExtensionSpecifications} from './specifications.js'
 import {AppInterface} from '../app/app.js'
-import {bundleExtension} from '../../services/extensions/bundle.js'
+import {bundleExtension, BundleOptions} from '../../services/extensions/bundle.js'
 import {ThemeExtension, UIExtension} from '../app/extensions.js'
+import {FileWatcherOptions, setupBundlerAndFileWatcher} from '../../services/dev/extension/bundler.js'
 import {id, path, schema, api, output, environment, string} from '@shopify/cli-kit'
+import {option} from '@oclif/core/lib/flags.js'
 import {Writable} from 'node:stream'
 
 // Base config type that all config schemas must extend.
@@ -25,6 +27,7 @@ export interface ExtensionSpec<TConfiguration extends BaseConfigContents = BaseC
   templatePath?: string
   graphQLType?: string
   schema: ZodSchemaType<TConfiguration>
+  buildOptions: (app: AppInterface, conig: TConfiguration, path: string) => Promise<Partial<BundleOptions>>
   deployConfig?: (config: TConfiguration, directory: string) => Promise<{[key: string]: unknown}>
   preDeployValidation?: (config: TConfiguration) => Promise<void>
   resourceUrl?: (config: TConfiguration) => string
@@ -120,7 +123,9 @@ export class ExtensionInstance<TConfiguration extends BaseConfigContents = BaseC
 
   async build(stdout: Writable, stderr: Writable, app: AppInterface) {
     stdout.write(`Bundling UI extension ${this.localIdentifier}...`)
-    await bundleExtension({
+    const options = (await this.specification.buildOptions(app, this.configuration, this.configurationPath)) ?? {}
+
+    const defaultOptions: BundleOptions = {
       minify: true,
       outputBundlePath: this.outputBundlePath,
       sourceFilePath: this.entrySourceFilePath,
@@ -128,8 +133,15 @@ export class ExtensionInstance<TConfiguration extends BaseConfigContents = BaseC
       env: app.dotenv?.variables ?? {},
       stderr,
       stdout,
-    })
+    }
+
+    await bundleExtension({...defaultOptions, ...options})
     stdout.write(`${this.localIdentifier} successfully built`)
+  }
+
+  async devBuild(options: FileWatcherOptions) {
+    const customOptions = (await this.specification.buildOptions(app, this.configuration, this.configurationPath)) ?? {}
+    setupBundlerAndFileWatcher(option, customOptions)
   }
 
   deployConfig(): Promise<{[key: string]: unknown}> {
@@ -197,6 +209,7 @@ export function createExtensionSpec<TConfiguration extends BaseConfigContents = 
   dependency?: {name: string; version: string}
   templatePath?: string
   graphQLType?: string
+  buildOptions: (app: AppInterface, conig: TConfiguration, path: string) => Promise<Partial<BundleOptions>>
   schema: ZodSchemaType<TConfiguration>
   deployConfig?: (config: TConfiguration, directory: string) => Promise<{[key: string]: unknown}>
   preDeployValidation?: (config: TConfiguration) => Promise<void>

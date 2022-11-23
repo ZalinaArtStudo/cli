@@ -104,6 +104,7 @@ describe('setupBundlerAndFileWatcher()', () => {
     // THEN
     expect(fileWatcherOptions.payloadStore.updateExtension).toHaveBeenCalledWith(
       fileWatcherOptions.devOptions.extensions[0],
+      fileWatcherOptions.devOptions,
       {status: 'success'},
     )
   })
@@ -124,6 +125,7 @@ describe('setupBundlerAndFileWatcher()', () => {
     // THEN
     expect(fileWatcherOptions.payloadStore.updateExtension).toHaveBeenCalledWith(
       fileWatcherOptions.devOptions.extensions[0],
+      fileWatcherOptions.devOptions,
       {status: 'error'},
     )
   })
@@ -164,9 +166,11 @@ describe('setupBundlerAndFileWatcher()', () => {
     // THEN
     expect(fileWatcherOptions.payloadStore.updateExtension).toHaveBeenCalledWith(
       fileWatcherOptions.devOptions.extensions[0],
+      fileWatcherOptions.devOptions,
     )
     expect(fileWatcherOptions.payloadStore.updateExtension).toHaveBeenCalledWith(
       fileWatcherOptions.devOptions.extensions[1],
+      fileWatcherOptions.devOptions,
     )
   })
 })

@@ -6,7 +6,7 @@ import {UIExtension} from '../../../models/app/extensions.js'
 import {getUIExtensionRendererVersion} from '../../../models/app/app.js'
 import {file} from '@shopify/cli-kit'
 
-type GetUIExtensionPayloadOptions = ExtensionDevOptions & {
+export type GetUIExtensionPayloadOptions = ExtensionDevOptions & {
   currentDevelopmentPayload?: Partial<UIExtensionPayload['development']>
   currentLocalizationPayload?: UIExtensionPayload['localization']
 }
@@ -16,10 +16,7 @@ export async function getUIExtensionPayload(
   options: GetUIExtensionPayloadOptions,
 ): Promise<UIExtensionPayload> {
   const url = `${options.url}/extensions/${extension.devUUID}`
-  const {localization, status: localizationStatus} = await getLocalization(
-    extension,
-    options.currentLocalizationPayload,
-  )
+  const {localization, status: localizationStatus} = await getLocalization(extension, options)
 
   const renderer = await getUIExtensionRendererVersion(extension.configuration.type, options.app)
   return {

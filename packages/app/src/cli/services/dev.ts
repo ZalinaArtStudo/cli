@@ -11,6 +11,8 @@ import {
 import {AppInterface, AppConfiguration, Web, WebType} from '../models/app/app.js'
 import metadata from '../metadata.js'
 import {UIExtension} from '../models/app/extensions.js'
+import {UuidOnlyIdentifiers} from '../models/app/identifiers.js'
+import {OrganizationApp} from '../models/organization.js'
 import {fetchProductVariant} from '../utilities/extensions/fetch-product-variant.js'
 import {analytics, output, system, session, abort, string, environment} from '@shopify/cli-kit'
 import {Config} from '@oclif/core'
@@ -53,20 +55,42 @@ async function dev(options: DevOptions) {
       app: await installAppDependencies(options.app),
     }
   }
-  const token = await session.ensureAuthenticatedPartners()
-  const {
-    identifiers,
-    storeFqdn,
-    app,
-    updateURLs: cachedUpdateURLs,
-    tunnelPlugin,
-  } = await ensureDevEnvironment(options, token)
-  const apiKey = identifiers.app
 
+  const autoRun = process.env['AUTORUN']
+  let token = 'token'
+  let identifiers: UuidOnlyIdentifiers = {
+    app: '48a29720277c0b4f6d00862f77aa6f2f',
+    extensions: {},
+  }
+  let storeFqdn = `1p-app-spin-store-v2.shopify.${await environment.spin.fqdn()}`
+  let app: Omit<OrganizationApp, 'apiSecretKeys' | 'apiKey'> & {apiSecret?: string}  = {
+		  id: 'ID',
+      title: 'Title',
+      organizationId: 'org',
+			apiSecret: '9a163737dceb91e50a42c8c8d6408b3b',
+      grantedScopes: []
+	}
+  let tunnelPlugin = undefined
+  let cachedUpdateURLs = false
+  if (!autoRun) {
+    token = await session.ensureAuthenticatedPartners()
+    const devEnvironment = await ensureDevEnvironment(options, token)
+    identifiers = devEnvironment.identifiers
+    storeFqdn = devEnvironment.storeFqdn
+    app = devEnvironment.app
+    cachedUpdateURLs = devEnvironment.updateURLs ?? false
+    tunnelPlugin = devEnvironment.tunnelPlugin
+  }
+
+  const apiKey = identifiers.app
   const {frontendUrl, frontendPort, usingLocalhost} = await generateFrontendURL({
     ...options,
     cachedTunnelPlugin: tunnelPlugin,
   })
+
+  output.debug(JSON.stringify(app))
+  output.debug(storeFqdn)
+  output.debug(JSON.stringify(identifiers))
 
   const backendPort = await getAvailableTCPPort()
 
@@ -76,18 +100,20 @@ async function dev(options: DevOptions) {
   /** If the app doesn't have web/ the link message is not necessary */
   const exposedUrl = usingLocalhost ? `${frontendUrl}:${frontendPort}` : frontendUrl
   let shouldUpdateURLs = false
-  if ((frontendConfig || backendConfig) && options.update) {
-    const currentURLs = await getURLs(apiKey, token)
-    const newURLs = generatePartnersURLs(exposedUrl, backendConfig?.configuration.auth_callback_path)
-    shouldUpdateURLs = await shouldOrPromptUpdateURLs({
-      currentURLs,
-      appDirectory: options.app.directory,
-      cachedUpdateURLs,
-      newApp: app.newApp,
-    })
-    if (shouldUpdateURLs) await updateURLs(newURLs, apiKey, token)
-    await outputUpdateURLsResult(shouldUpdateURLs, newURLs, app)
+  if (frontendConfig || backendConfig){
     outputAppURL(storeFqdn, exposedUrl)
+    if (options.update && !autoRun) {
+      const currentURLs = await getURLs(apiKey, token)
+      const newURLs = generatePartnersURLs(exposedUrl, backendConfig?.configuration.auth_callback_path)
+      shouldUpdateURLs = await shouldOrPromptUpdateURLs({
+        currentURLs,
+        appDirectory: options.app.directory,
+        cachedUpdateURLs,
+        newApp: app.newApp,
+      })
+      if (shouldUpdateURLs) await updateURLs(newURLs, apiKey, token)
+      await outputUpdateURLsResult(shouldUpdateURLs, newURLs, app)
+    }
   }
 
   // If we have a real UUID for an extension, use that instead of a random one

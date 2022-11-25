@@ -56,23 +56,25 @@ async function dev(options: DevOptions) {
     }
   }
 
-  const autoRun = process.env['AUTORUN']
+  const siletMode = process.env.APP_KEY
   let token = 'token'
   let identifiers: UuidOnlyIdentifiers = {
-    app: '48a29720277c0b4f6d00862f77aa6f2f',
+    app: process.env.APP_KEY ?? '',
     extensions: {},
   }
-  let storeFqdn = `1p-app-spin-store-v2.shopify.${await environment.spin.fqdn()}`
-  let app: Omit<OrganizationApp, 'apiSecretKeys' | 'apiKey'> & {apiSecret?: string}  = {
-		  id: 'ID',
-      title: 'Title',
-      organizationId: 'org',
-			apiSecret: '9a163737dceb91e50a42c8c8d6408b3b',
-      grantedScopes: []
-	}
-  let tunnelPlugin = undefined
+  let storeFqdn = environment.service.isSpinEnvironment()
+    ? `${process.env.STORE_NAME}.shopify.${await environment.spin.fqdn()}`
+    : `${process.env.STORE_NAME}.myshopify.com`
+  let app: Omit<OrganizationApp, 'apiSecretKeys' | 'apiKey'> & {apiSecret?: string} = {
+    id: 'ID',
+    title: 'Title',
+    organizationId: 'org',
+    apiSecret: process.env.APP_SECRET ?? '',
+    grantedScopes: [],
+  }
+  let tunnelPlugin
   let cachedUpdateURLs = false
-  if (!autoRun) {
+  if (!siletMode) {
     token = await session.ensureAuthenticatedPartners()
     const devEnvironment = await ensureDevEnvironment(options, token)
     identifiers = devEnvironment.identifiers
@@ -100,20 +102,18 @@ async function dev(options: DevOptions) {
   /** If the app doesn't have web/ the link message is not necessary */
   const exposedUrl = usingLocalhost ? `${frontendUrl}:${frontendPort}` : frontendUrl
   let shouldUpdateURLs = false
-  if (frontendConfig || backendConfig){
+  if ((frontendConfig || backendConfig) && options.update && !siletMode) {
+    const currentURLs = await getURLs(apiKey, token)
+    const newURLs = generatePartnersURLs(exposedUrl, backendConfig?.configuration.auth_callback_path)
+    shouldUpdateURLs = await shouldOrPromptUpdateURLs({
+      currentURLs,
+      appDirectory: options.app.directory,
+      cachedUpdateURLs,
+      newApp: app.newApp,
+    })
+    if (shouldUpdateURLs) await updateURLs(newURLs, apiKey, token)
+    await outputUpdateURLsResult(shouldUpdateURLs, newURLs, app)
     outputAppURL(storeFqdn, exposedUrl)
-    if (options.update && !autoRun) {
-      const currentURLs = await getURLs(apiKey, token)
-      const newURLs = generatePartnersURLs(exposedUrl, backendConfig?.configuration.auth_callback_path)
-      shouldUpdateURLs = await shouldOrPromptUpdateURLs({
-        currentURLs,
-        appDirectory: options.app.directory,
-        cachedUpdateURLs,
-        newApp: app.newApp,
-      })
-      if (shouldUpdateURLs) await updateURLs(newURLs, apiKey, token)
-      await outputUpdateURLsResult(shouldUpdateURLs, newURLs, app)
-    }
   }
 
   // If we have a real UUID for an extension, use that instead of a random one

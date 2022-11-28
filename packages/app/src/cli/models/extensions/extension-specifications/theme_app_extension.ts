@@ -6,7 +6,7 @@ const spec = createExtensionSpec({
   identifier: 'theme',
   externalIdentifier: 'theme_app_extension',
   externalName: 'Theme app extension',
-  surface: 'unknown',
+  surface: null,
   graphQLType: 'theme_app_extension',
   partnersWebIdentifier: 'theme_app_extension',
   schema: BaseExtensionSchema,

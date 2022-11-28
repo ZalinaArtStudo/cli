@@ -1,21 +1,21 @@
 import {getLocalization} from './localization.js'
-import {UIExtensionPayload} from './payload/models.js'
 import {getUIExtensionResourceURL} from '../../../utilities/extensions/configuration.js'
 import {ExtensionDevOptions} from '../extension.js'
 import {UIExtension} from '../../../models/app/extensions.js'
 import {getUIExtensionRendererVersion} from '../../../models/app/app.js'
 import {NewExtensionPointSchemaType} from '../../../models/extensions/schemas.js'
+import {ExtensionPayload, Status} from '@shopify/ui-extensions-server-kit'
 import {file} from '@shopify/cli-kit'
 
 type GetUIExtensionPayloadOptions = ExtensionDevOptions & {
-  currentDevelopmentPayload?: Partial<UIExtensionPayload['development']>
-  currentLocalizationPayload?: UIExtensionPayload['localization']
+  currentDevelopmentPayload?: Partial<ExtensionPayload['development']>
+  currentLocalizationPayload?: ExtensionPayload['localization']
 }
 
 export async function getUIExtensionPayload(
   extension: UIExtension,
   options: GetUIExtensionPayloadOptions,
-): Promise<UIExtensionPayload> {
+): Promise<ExtensionPayload> {
   const url = `${options.url}/extensions/${extension.devUUID}`
   const {localization, status: localizationStatus} = await getLocalization(
     extension,
@@ -43,12 +43,12 @@ export async function getUIExtensionPayload(
       },
       hidden: options.currentDevelopmentPayload?.hidden || false,
       localizationStatus,
-      status: options.currentDevelopmentPayload?.status || 'success',
-      ...(options.currentDevelopmentPayload || {status: 'success'}),
+      status: options.currentDevelopmentPayload?.status || Status.Success,
+      ...(options.currentDevelopmentPayload || {status: Status.Success}),
     },
     extensionPoints: getExtensionPoints(extension.configuration.extensionPoints, url),
-    localization: localization ?? null,
-    categories: extension.configuration.categories ?? null,
+    localization,
+    categories: extension.configuration.categories,
     metafields: extension.configuration.metafields.length === 0 ? null : extension.configuration.metafields,
     type: extension.configuration.type,
 
@@ -64,6 +64,7 @@ export async function getUIExtensionPayload(
     title: extension.configuration.name,
     approvalScopes: options.grantedScopes,
   }
+
   return defaultConfig
 }
 

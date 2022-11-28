@@ -230,7 +230,7 @@ declare global {
   }
 }
 
-export const AVAILABLE_SURFACES = ['admin', 'checkout', 'post-checkout', 'pos', 'customer-accounts'] as const
+export const AVAILABLE_SURFACES = ['admin', 'checkout', 'post-checkout', 'pos', 'customer-accounts', null] as const
 
 export type Surface = typeof AVAILABLE_SURFACES[number]
 

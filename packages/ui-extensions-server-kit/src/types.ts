@@ -50,21 +50,25 @@ export interface ResourceURL {
   lastUpdated: number
 }
 
+export interface Capabilities {
+  [key: string]: boolean | undefined
+}
+
 export interface ExtensionPayload {
-  type: string
-  externalType: string
   assets: {[name: string]: ResourceURL}
+  capabilities?: Capabilities
   development: {
-    hidden: boolean
-    status: Status
-    focused?: boolean
     resource: {
       url: string
     }
     root: {
       url: string
     }
-    renderer: {
+    hidden: boolean
+    status: Status
+    localizationStatus: Status
+    focused?: boolean
+    renderer?: {
       name: string
       version: string
     }
@@ -82,11 +86,15 @@ export interface ExtensionPayload {
     lastUpdated: number
     translations: {[locale: string]: ExtensionTranslationMap}
   }
+  type: string
+  externalType: string
+  approvalScopes: string[]
 }
 
 export enum Status {
   Error = 'error',
   Success = 'success',
+  Unknown = '',
 }
 
 export interface App {
@@ -106,6 +114,6 @@ export interface App {
   supportLocales?: string[]
 }
 
-interface ExtensionTranslationMap {
+export interface ExtensionTranslationMap {
   [key: string]: string
 }

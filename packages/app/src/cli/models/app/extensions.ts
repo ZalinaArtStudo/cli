@@ -3,6 +3,7 @@ import {BaseConfigContents} from '../extensions/extensions.js'
 import {FunctionConfigType} from '../extensions/functions.js'
 import {output} from '@shopify/cli-kit'
 import {Result} from '@shopify/cli-kit/common/result'
+import {Surface} from '@shopify/ui-extensions-server-kit'
 
 export interface ExtensionIdentifier {
   identifier: string
@@ -37,7 +38,7 @@ export type UIExtension<TConfiguration extends BaseConfigContents = BaseConfigCo
   entrySourceFilePath?: string
   outputBundlePath: string
   devUUID: string
-  surface: string
+  surface: Surface
   getBundleExtensionStdinContent(): string
   validate(): Promise<Result<unknown, string>>
   preDeployValidation(): Promise<void>

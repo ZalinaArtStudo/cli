@@ -15,7 +15,7 @@ const spec = createExtensionSpec({
   identifier: 'web_pixel_extension',
   externalIdentifier: 'web_pixel',
   externalName: 'Web pixel',
-  surface: 'unknown',
+  surface: null,
   dependency,
   partnersWebIdentifier: 'web_pixel',
   schema: WebPixelSchema,

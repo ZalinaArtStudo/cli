@@ -4,6 +4,7 @@ import {allExtensionSpecifications} from './specifications.js'
 import {ExtensionIdentifier, ThemeExtension, UIExtension} from '../app/extensions.js'
 import {id, path, schema, api, output, environment, string} from '@shopify/cli-kit'
 import {ok, Result} from '@shopify/cli-kit/common/result'
+import {Surface} from '@shopify/ui-extensions-server-kit'
 
 // Base config type that all config schemas must extend.
 export type BaseConfigContents = schema.define.infer<typeof BaseExtensionSchema>
@@ -17,7 +18,7 @@ export interface ExtensionSpec<TConfiguration extends BaseConfigContents = BaseC
   externalIdentifier: string
   externalName: string
   partnersWebIdentifier: string
-  surface: string
+  surface: Surface
   showInCLIHelp: boolean
   singleEntryPath: boolean
   dependency?: {name: string; version: string}
@@ -206,7 +207,7 @@ export function createExtensionSpec<TConfiguration extends BaseConfigContents = 
   identifier: string
   externalIdentifier: string
   partnersWebIdentifier: string
-  surface: string
+  surface: Surface
   externalName: string
   showInCLIHelp?: boolean
   dependency?: {name: string; version: string}

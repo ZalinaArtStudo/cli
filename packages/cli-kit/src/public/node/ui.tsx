@@ -5,6 +5,7 @@ import {Fatal} from '../../error.js'
 import {alert} from '../../private/node/ui/alert.js'
 import {fatalError} from '../../private/node/ui/error.js'
 import {AlertProps} from '../../private/node/ui/components/Alert.js'
+import {Progress, ProgressProps} from '../../private/node/ui/components/Progress.js'
 import React from 'react'
 import {AbortController} from 'abort-controller'
 
@@ -151,6 +152,51 @@ export function renderWarning(options: RenderAlertOptions) {
   alert({...options, type: 'warning'})
 }
 
+function helperProgress(props: ProgressProps[]) {
+  const mapped = props.map((prop) => <Progress {...prop} />)
+  const {rerender} = render(<>{mapped}</>)
+
+  const timer = setInterval(() => {
+    props.forEach((prop) => {
+      prop.percent = Math.min(prop.percent + Math.random(), 100)
+    })
+    const mapped = props.map((prop) => <Progress {...prop} />)
+    rerender(<>{mapped}</>)
+    if (props.every((prop) => prop.percent >= 100)) {
+      clearInterval(timer)
+    }
+  }, 20)
+}
+
+export function renderProgress() {
+  const props: ProgressProps = {
+    percent: 0,
+    barWidth: 40,
+    backgroundColor: 'blue',
+    barColor: 'white',
+    textColor: 'red',
+    label: 'GB',
+    showPercentage: false,
+  }
+
+  const props2: ProgressProps = {
+    percent: 0,
+    barWidth: 60,
+    backgroundColor: 'yellow',
+    barColor: 'red',
+    textColor: 'purple',
+    label: 'Spain:',
+  }
+
+  const props3: ProgressProps = {
+    percent: 0,
+    barWidth: 80,
+    backgroundColor: 'white',
+    barColor: 'green',
+    textColor: 'red',
+  }
+  helperProgress([props, props2, props3])
+}
 /**
  * Renders a Fatal error to the console inside a banner.
  *

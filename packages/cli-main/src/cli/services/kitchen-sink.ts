@@ -1,7 +1,5 @@
 import {error} from '@shopify/cli-kit'
-import {renderConcurrent, renderFatalError, renderInfo, renderSuccess, renderWarning} from '@shopify/cli-kit/node/ui'
-import {Signal} from '@shopify/cli-kit/src/abort'
-import {Writable} from 'node:stream'
+import {renderFatalError, renderInfo, renderProgress, renderSuccess, renderWarning} from '@shopify/cli-kit/node/ui'
 
 export async function kitchenSink() {
   renderInfo({
@@ -121,42 +119,42 @@ export async function kitchenSink() {
 
   renderFatalError(new error.Abort('No Organization found', undefined, nextSteps))
 
-  // renderConcurrent at the end
-  let backendPromiseResolve: () => void
+  await renderProgress()
+  // // renderConcurrent at the end
+  // let backendPromiseResolve: () => void
 
-  const backendPromise = new Promise<void>(function (resolve, _reject) {
-    backendPromiseResolve = resolve
-  })
+  // const backendPromise = new Promise<void>(function (resolve, _reject) {
+  //   backendPromiseResolve = resolve
+  // })
 
-  const backendProcess = {
-    prefix: 'backend',
-    action: async (stdout: Writable, _stderr: Writable, _signal: Signal) => {
-      stdout.write('first backend message')
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      stdout.write('second backend message')
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      stdout.write('third backend message')
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+  // const backendProcess = {
+  //   prefix: 'backend',
+  //   action: async (stdout: Writable, _stderr: Writable, _signal: Signal) => {
+  //     stdout.write('first backend message')
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
+  //     stdout.write('second backend message')
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
+  //     stdout.write('third backend message')
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      backendPromiseResolve()
-    },
-  }
+  //     backendPromiseResolve()
+  //   },
+  // }
 
-  const frontendProcess = {
-    prefix: 'frontend',
-    action: async (stdout: Writable, _stderr: Writable, _signal: Signal) => {
-      await backendPromise
+  // const frontendProcess = {
+  //   prefix: 'frontend',
+  //   action: async (stdout: Writable, _stderr: Writable, _signal: Signal) => {
+  //     await backendPromise
 
-      stdout.write('first frontend message')
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      stdout.write('second frontend message')
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      stdout.write('third frontend message')
-    },
-  }
+  //     stdout.write('first frontend message')
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
+  //     stdout.write('second frontend message')
+  //     await new Promise((resolve) => setTimeout(resolve, 1000))
+  //     stdout.write('third frontend message')
+  //   },
+  // }
 
-  // eslint-disable-next-line @typescript-eslint/no-floating-promises
-  renderConcurrent({processes: [backendProcess, frontendProcess]})
+  // renderConcurrent({processes: [backendProcess, frontendProcess]})
 
   // Add your component here
 }

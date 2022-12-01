@@ -1,5 +1,5 @@
 import {ExtensionTypes} from '../../constants.js'
-import {BaseConfigContents} from '../extensions/extensions.js'
+import {BaseConfigContents} from '../extensions/ui.js'
 import {FunctionConfigType} from '../extensions/functions.js'
 import {output} from '@shopify/cli-kit'
 import {Result} from '@shopify/cli-kit/common/result'

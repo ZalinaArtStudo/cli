@@ -362,7 +362,6 @@ class AppLoader {
       return new ThemeExtensionInstance({
         configuration,
         configurationPath,
-        entryPath: '',
         directory,
         specification,
         remoteSpecification: undefined,

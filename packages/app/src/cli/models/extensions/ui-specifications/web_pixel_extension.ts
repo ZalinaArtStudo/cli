@@ -1,10 +1,10 @@
 import {createUIExtensionSpec} from '../ui.js'
-import {BaseExtensionSchema} from '../schemas.js'
+import {BaseUIExtensionSchema} from '../schemas.js'
 import {error, schema} from '@shopify/cli-kit'
 
 const dependency = {name: '@shopify/web-pixels-extension', version: '^0.1.1'}
 
-const WebPixelSchema = BaseExtensionSchema.extend({
+const WebPixelSchema = BaseUIExtensionSchema.extend({
   runtimeContext: schema.define.string(),
   version: schema.define.string().optional(),
   configuration: schema.define.any(),

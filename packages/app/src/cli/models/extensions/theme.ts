@@ -1,16 +1,16 @@
-import {BaseUIExtensionSchema, ZodSchemaType} from './schemas.js'
-import {allUISpecifications} from './specifications.js'
-import {ExtensionIdentifier, UIExtension} from '../app/extensions.js'
+import {BaseThemeExtensionSchema, ZodSchemaType} from './schemas.js'
+import {allThemeSpecifications} from './specifications.js'
+import {ExtensionIdentifier, ThemeExtension} from '../app/extensions.js'
 import {id, path, schema, api, output, environment, string} from '@shopify/cli-kit'
 import {ok, Result} from '@shopify/cli-kit/common/result'
 
 // Base config type that all config schemas must extend.
-export type BaseConfigContents = schema.define.infer<typeof BaseUIExtensionSchema>
+export type BaseThemeConfigContents = schema.define.infer<typeof BaseThemeExtensionSchema>
 
 /**
  * Extension specification with all the needed properties and methods to load an extension.
  */
-export interface UIExtensionSpec<TConfiguration extends BaseConfigContents = BaseConfigContents>
+export interface ThemeExtensionSpec<TConfiguration extends BaseThemeConfigContents = BaseThemeConfigContents>
   extends ExtensionIdentifier {
   identifier: string
   externalIdentifier: string
@@ -49,8 +49,8 @@ export interface UIExtensionSpec<TConfiguration extends BaseConfigContents = Bas
  *
  * This class holds the public interface to interact with extensions
  */
-export class UIExtensionInstance<TConfiguration extends BaseConfigContents = BaseConfigContents>
-  implements UIExtension<TConfiguration>
+export class ThemeExtensionInstance<TConfiguration extends BaseThemeConfigContents = BaseThemeConfigContents>
+  implements ThemeExtension<TConfiguration>
 {
   entrySourceFilePath: string
   outputBundlePath: string
@@ -61,7 +61,7 @@ export class UIExtensionInstance<TConfiguration extends BaseConfigContents = Bas
   configuration: TConfiguration
   configurationPath: string
 
-  private specification: UIExtensionSpec
+  private specification: ThemeExtensionSpec
   private remoteSpecification?: api.graphql.RemoteSpecification
 
   get graphQLType() {
@@ -101,7 +101,7 @@ export class UIExtensionInstance<TConfiguration extends BaseConfigContents = Bas
     configurationPath: string
     entryPath: string
     directory: string
-    specification: UIExtensionSpec
+    specification: ThemeExtensionSpec
     remoteSpecification?: api.graphql.RemoteSpecification
   }) {
     this.configuration = options.configuration
@@ -169,8 +169,8 @@ export class UIExtensionInstance<TConfiguration extends BaseConfigContents = Bas
 /**
  * Find the registered spececification for a given extension type
  */
-export async function uiSpecForType(type: string): Promise<UIExtensionSpec | undefined> {
-  const allSpecs = await allUISpecifications()
+export async function themeSpecForType(type: string): Promise<ThemeExtensionSpec | undefined> {
+  const allSpecs = await allThemeSpecifications()
   return allSpecs.find((spec) => spec.identifier === type || spec.externalIdentifier === type)
 }
 
@@ -179,7 +179,9 @@ function remoteSpecForType(type: string): api.graphql.RemoteSpecification | unde
   return undefined
 }
 
-export function createUIExtensionSpec<TConfiguration extends BaseConfigContents = BaseConfigContents>(spec: {
+export function createThemeExtensionSpec<
+  TConfiguration extends BaseThemeConfigContents = BaseThemeConfigContents,
+>(spec: {
   identifier: string
   externalIdentifier: string
   partnersWebIdentifier: string
@@ -203,7 +205,7 @@ export function createUIExtensionSpec<TConfiguration extends BaseConfigContents 
   ) => output.TokenizedString | undefined
   shouldFetchCartUrl?(config: TConfiguration): boolean
   hasExtensionPointTarget?(config: TConfiguration, target: string): boolean
-}): UIExtensionSpec<TConfiguration> {
+}): ThemeExtensionSpec<TConfiguration> {
   const defaults = {
     showInCLIHelp: true,
     singleEntryPath: true,
